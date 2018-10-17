@@ -6,10 +6,12 @@ authors:
     - Mattt
 category: Swift
 excerpt: >
-    Swift 2.0 introduced two new control statements
-    that aimed to simplify and streamline the programs we write.
-    While the former by its nature makes our code more linear,
-    the latter does the opposite by delaying execution of its contents.
+	Swift 2.0 a instauré deux nouvelles structures de contrôle
+	dont l'objectif est de simplifier et d'affiner les programmes
+	que nous écrivons.
+	Alors que le premier, par sa nature, rend notre code plus
+	linéaire, le second permet l'inverse, en retardant
+	l'exécution de son contenu.
 revisions:
     "2015-10-05": First Publication
     "2018-08-01": Updated for Swift 4.2
@@ -18,41 +20,46 @@ status:
     reviewed: August 1, 2018
 ---
 
-> "We should do (as wise programmers aware of our limitations)
-> our utmost best to … make the correspondence between the program
-> (spread out in text space) and the process
-> (spread out in time) as trivial as possible."
+> "Tels des programmeurs conscient de nos limites,
+> nous devrions faire tout notre possible pour […]
+> faire en sorte que la relation entre nos 
+> programmes (exprimés par du texte)
+> et leurs exécutions (exprimezs par rapport au temps)
+> soit aussi évidente que possible."
 
 > —[Edsger W. Dijkstra](https://en.wikipedia.org/wiki/Edsger_W._Dijkstra),
 > ["Go To Considered Harmful"](https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf)
 
-It's a shame that his essay
-is most remembered for popularizing the "\_\_\_\_ Consider Harmful" meme
-among programmers and their ill-considered online diatribes.
-Because (as usual) Dijkstra was making an excellent point:
-**the structure of code should reflect its behavior**.
+Il est regrettable que l'article de Dijkstra soit principalement resté 
+dans la mémoire des développeurs comme l'origine du populaire titre d'article "\_\_\_\_ Consider Harmful".
 
-Swift 2.0 introduced two new control statements
-that aimed to simplify and streamline the programs we write:
-`guard` and `defer`.
-While the former by its nature makes our code more linear,
-the latter does the opposite by delaying execution of its contents.
+Car, comme souvent, Dijkstra faisait une remarque pertinente:
+**la structure d'un code devrait refléter son comportement**.
 
-How should we approach these new control statements?
-How can `guard` and `defer` help us clarify
-the correspondence between the program and the process?
+Swift 2.0 a instauré deux nouvelles structures de contrôle
+dont l'objectif est de simplifier et d'affiner les programmes
+que nous écrivons : `guard` et `defer`.
+Alors que le premier, par sa nature, rend notre code plus
+linéaire, le second permet l'inverse, en retardant
+l'exécution de son contenu.
 
-Let's defer `defer` and first take on `guard`.
+Comment devons nous apprivoiser ces nouvelles structures
+de contrôle ?
+De quelle manière `guard` et `defer` peuvent-ils nous permettre
+de simplifier la relation entre un programme et son exécution ?
+
+Remettons `defer` à plus tard, et commençons par nous
+intéresser à `guard`.
 
 ---
 
 ## guard
 
-`guard` is a conditional statement
-requires an expression to evaluate to `true`
-for execution to continue.
-If the expression is `false`,
-the mandatory `else` clause is executed instead.
+`guard` est une instruction conditionnelle, qui requiert
+une expression s'évaluant à `true` pour poursuivre
+l'exécution.
+Si l'expression s'évalue à `false`, l'obligatoire clause
+`else` est exécuté à la place.
 
 ```swift
 func sayHello(numberOfTimes: Int) {
@@ -66,19 +73,23 @@ func sayHello(numberOfTimes: Int) {
 }
 ```
 
-The `else` clause in a `guard` statement
-must exit the current scope by using
-`return` to leave a function,
-`continue` or `break` to get out of a loop,
-or a function that returns [`Never`](https://nshipster.com/never)
-like `fatalError(_:file:line:)`.
+La clause `else` d'une instruction `guard`
+doit entraîner la sortie de la portée
+courante en utilisant soit `return` pour
+quitter une fonction, soit `continue` ou
+`break` pour sortir d'une boucle, ou bien
+une fonctionne qui retourne
+[`Never`](https://nshipster.com/never)
+telle que `fatalError(_:file:line:)`.
 
-`guard` statements are most useful when combined with optional bindings.
-Any new optional bindings created in a `guard` statement's condition
-are available for the rest of the function or block.
+`guard` est particulièrement utile lorsqu'il est combiné
+à l'inspection d'un optionnel. Toutes les affectations
+de valeurs optionnelles crées dans une instruction `guard`
+sont visibles par le reste de la fonction ou portée.
 
-Compare how optional binding works with a `guard-let` statement
-to an `if-let` statement:
+Comparons une affectation d'optionnel réalisée par une
+instruction `guard-let` par rapport à une instruction
+`if-let` :
 
 ```swift
 var name: String?
@@ -96,11 +107,10 @@ guard let name = name else {
 // name is nonoptional from now on (name is String)
 ```
 
-If the multiple optional bindings syntax introduced in
-[Swift 1.2](/swift-1.2/)
-heralded a renovation of the
-[pyramid of doom](http://www.scottlogic.com/blog/2014/12/08/swift-optional-pyramids-of-doom.html),
-`guard` statements tear it down altogether.
+Si la syntaxe permettant de multiples affections
+instaurée par [Swift 1.2](/swift-1.2/) annonçait
+une réfection de la [pyramide du malheur](http://www.scottlogic.com/blog/2014/12/08/swift-optional-pyramids-of-doom.html), `guard`
+permet de complètement la démolir.
 
 ```swift
 for imageName in imageNamesList {
@@ -111,13 +121,13 @@ for imageName in imageNamesList {
 }
 ```
 
-### Guarding Against Excessive Indentation and Errors
+### Se prémunir de l'indentation et les erreurs excessives
 
-Let's take a before-and-after look at how `guard` can
-improve our code and help prevent errors.
+Regardons un avant/après de la façon dont `guard`
+permet d'améliorer notre code et éviter des erreurs.
 
-As an example,
-we'll implement a `readBedtimeStory()` function:
+Comme exemple, nous allons implémenter une fonction
+`readBedtimeStory()` :
 
 ```swift
 enum StoryError: Error {
@@ -147,24 +157,24 @@ func readBedtimeStory() throws {
 }
 ```
 
-To read a bedtime story,
-we need to be able to find the book,
-the storybook must be decipherable,
-and the story can't be too scary
-(_no monsters at the end of this book, please and thank you!_).
+Pour lire une histoire,
+il nous faut obtenir un livre,
+ce livre doit être déchiffrable,
+et l'histoire ne doit pas faire
+trop peur.
 
-But note how far apart the `throw` statements are from the checks themselves.
-To find out what happens when you can't find `book.txt`,
-you need to read all the way to the bottom of the method.
+Remarquons comme les instructions `throw` sont éloignées des
+conditions qui les déclenchent. Pour comprendre ce qu'il doit
+se passer lors que le livre `book.txt` n'a pas pu être trouvé,
+il est nécessaire de descendre jusqu'à la fin de la fonction.
 
-Like a good book,
-code should tell a story:
-with an easy-to-follow plot,
-and clear a beginning, middle, and end.
-(Just try not to write too much code in the "post-modern" genre).
+Comme un bon livre, un code devrait raconter une histoire:
+un scénario facile à suivre, avec un début, un milieu et une fin
+bien identifiés.
 
-Strategic use of `guard` statements
-allow us to organize our code to read more linearly.
+Une utilisation appropriée de `guard` nous permet
+de structurer notre code afin de rendre sa lecture
+plus linéaire.
 
 ```swift
 func readBedtimeStory() throws {
@@ -188,19 +198,19 @@ func readBedtimeStory() throws {
 }
 ```
 
-_Much better!_
-Each error case is handled as soon as it's checked,
-so we can follow the flow of execution straight down the left-hand side.
+_Beaucoup mieux !_
 
-### Don't Not Guard Against Double Negatives
+Chaque erreur est traitée dès sa détection, et nous
+pouvons aisément suivre l'exécution.
 
-One habit to guard against
-as you embrace this new control flow mechanism is overuse ---
-particularly when the evaluated condition is already negated.
+### Il ne faut pas ne pas éviter les doubles négations
 
-For example,
-if you want to return early if a string is empty,
-don't write:
+Un travers à éviter à propos de cette nouvelle structure
+de contrôle est sa sur-utilisation --- particulièrement avec
+une condition déjà inversée.
+
+Par exemple, si l'on souhaite mettre fin à l'exécution lorsque
+qu'une chaîne de caractères est vide, il ne faut pas écrire :
 
 ```swift
 // Huh?
@@ -209,9 +219,9 @@ guard !string.isEmpty else {
 }
 ```
 
-Keep it simple.
-Go with the (control) flow.
-Avoid the double negative.
+Restons simple.
+Mieux vaut utiliser une structure de contrôle classique,
+et éviter ainsi une double négation.
 
 ```swift
 // Aha!
@@ -222,21 +232,20 @@ if string.isEmpty {
 
 ## defer
 
-Between `guard` and the new `throw` statement for error handling,
-Swift encourages a style of early return
-(an NSHipster favorite) rather than nested `if` statements.
-Returning early poses a distinct challenge, however,
-when resources that have been initialized
-(and may still be in use)
-must be cleaned up before returning.
+Entre `guard` et la nouvelle instruction `throw` pour la gestion
+d'erreur, Swift promeut un style de programmation basé sur la fin
+d'exécution prématurée plutôt que l'imbrication d'instructions `if`.
+Toutefois, ces retours prématurés posent un problème lorsque des
+ressources ont été allouées, sont peut-être encore utilisées,
+et doivent être libérées avant de mettre fin à l'exécution.
 
-The `defer` keyword provides a safe and easy way to handle this challenge
-by declaring a block that will be executed
-only when execution leaves the current scope.
+Le mot-clé `defer` fournit un moyen sûr et simple de gérer cette
+difficulté en indiquant qu'un bloc de code ne devra être exécuté
+que quand l'exécution de la portée courante se terminera.
 
-Consider the following function that wraps a system call to `gethostname(2)`
-to return the current [hostname](https://en.wikipedia.org/wiki/Hostname)
-of the system:
+Considérons la fonction suivante, qui encapsule l'appel système
+`gethostname(2)` et retourne le [nom d'hôte](https://en.wikipedia.org/wiki/Hostname)
+du système :
 
 ```swift
 import Darwin
@@ -257,15 +266,16 @@ func currentHostName() -> String {
 }
 ```
 
-Here, we allocate an `UnsafeMutablePointer<Int8>` early on
-but we need to remember to deallocate it
-both in the failure condition _and_ once we're finished with the buffer.
+Ici, nous allouons un `UnsafeMutablePointer<Int8>`, et nous
+devons nous assurer de le libérer lorsque la condition échoue
+_mais aussi_ lorsque nous avons fini de l'utiliser normalement.
 
-Error prone? _Yes._
-Frustratingly repetitive? _Check._
+Source d'erreur ? _Complètement._
+Répétitif et frustrant ? _Absolument._
 
-By using a `defer` statement,
-we can remove the potential for programmer error and simplify our code:
+En utilisant une instruction `defer`,
+nous pouvons supprimer l'erreur de programmation potentielle
+tout en simplifiant notre code :
 
 ```swift
 func currentHostName() -> String {
@@ -281,30 +291,30 @@ func currentHostName() -> String {
 }
 ```
 
-Even though `defer` comes immediately after the call to `allocate(capacity)`,
-its execution is delayed until the end of the current scope.
-Thanks to `defer`, `buffer` will be properly deallocated
-regardless of where the function returns.
+Bien que `defer` soit présent immédiatement après l'appel à
+`allocate(capacity)`, son exécution attendra le retour de la
+fonction, peu importe où il aura lieu.
 
-Consider using `defer` whenever an API requires calls to be balanced,
-such as `allocate(capacity:)` / `deallocate()`,
-`wait()` / `signal()`, or
+`defer` est un bon choix lorsque des appels d'API vont de paire,
+tels que `allocate(capacity:)` / `deallocate()`,
+`wait()` / `signal()`, ou
 `open()` / `close()`.
-This way, you not only eliminate a potential source of programmer error,
-but make Dijkstra proud.
-_"Goed gedaan!" he'd say, in his native Dutch_.
+Par cette approche, non seulement une source d'erreurs est éliminée,
+mais Dijkstra a également de quoi être fier.
+_"Goed gedaan!" peut-il s'exclamer, dans son Danois natif_.
 
-### Deferring Frequently
+### Utiliser `defer` à répétition
 
-If you use multiple `defer` statements in the same scope,
-they're executed in reverse order of appearance ---
-like a stack.
-This reverse order is a vital detail,
-ensuring everything that was in scope when a deferred block was created
-will still be in scope when the block is executed.
+Si écrivez plusieurs instructions `defer` dans une même portée,
+ils seront exécutés dans l'ordre inverse de leur déclaration ---
+comme une pile.
+Cette inversion est un détail primordial,
+car il assure que toutes les ressources présentes lorsque
+l'instruction est écrite le seront encore lorsqu'elle sera
+exécutée.
 
-For example,
-running the following code prints the output below:
+Par exemple, exécuter le code ci-dessous produira le
+résultat suivant :
 
 ```swift
 func procrastinate() {
@@ -323,27 +333,26 @@ take out the recycling<br/>
 wash the dishes<br/>
 </samp>
 
-> What happens if you nest `defer` statements, like this?
+
+
+> Que se passe-t-il si des instructions `defer` sont imbriquées, comme ici ?
 
 ```swift
 defer { defer { print("clean the gutter") } }
 ```
 
-> Your first thought might be that it pushes the statement
-> to the very bottom of the stack.
-> But that's not what happens.
-> Think it through,
-> and then test your hypothesis in a Playground.
+> Vous pourriez penser que `print("clean the gutter")` sera exécuté en tout dernier.
+> Mais ce n'est pas ce qui se produira.
+> Réfléchissez à la solution, et testez la ensuite dans un Playground.
 
-### Deferring Judgement
+### Utiliser `defer` à bon escient
 
-If a variable is referenced in the body of a `defer` statement,
-its final value is evaluated.
-That is to say:
-`defer` blocks don't capture the current value of a variable.
+Si une variable est utilisée dans le corps d'une instruction `defer`,
+sa valeur au moment de l'exécution du corps sera utilisée.
+Autrement dit : les instructions `defer` ne capturent pas la valeur d'une
+variable.
 
-If you run this next code sample,
-you'll get the output that follows:
+Si vous exécutez le code suivant, vous obtiendrez ce résultat :
 
 ```swift
 func flipFlop() {
@@ -360,12 +369,12 @@ It's pronounced /dʒɪf/ <br/>
 It's pronounced /dʒɪf/
 </samp>
 
-### Deferring Demurely
+### Utiliser `defer` avec parcimonie
 
-Another thing to keep in mind
-is that `defer` blocks can't break out of their scope.
-So if you try to call a method that can throw,
-the error can't be passed to the surrounding context.
+Un autre aspect à garder en tête est que `defer` ne permet
+pas de mettre fin à l'exécution d'une fonction ou d'une boucle.
+Donc si vous y appelez une fonction marquée comme `throws`,
+l'erreur ne pourra pas être propagée.
 
 ```swift
 func burnAfterReading(file url: URL) throws {
@@ -376,19 +385,19 @@ func burnAfterReading(file url: URL) throws {
 }
 ```
 
-Instead,
-you can either ignore the error by using `try?`
-or simply move the statement out of the `defer` block
-and at the end of the function to execute conventionally.
+A la place, vous pouvez choisir d'ignorer l'erreur via
+`try?` ou bien, si cela n'est pas possible, ne pas effectuer
+cette appel via l'instruction `defer`
 
 ### (Any Other) Defer Considered Harmful
 
-As handy as the `defer` statement is,
-be aware of how its capabilities can lead to confusing,
-untraceable code.
-It may be tempting to use `defer` in cases
-where a function needs to return a value that should also be modified,
-as in this typical implementation of the postfix `++` operator:
+Aussi pratique que `defer` puisse être,
+il faut se méfier de sa capacité à produire du code confus et
+cryptique.
+Il peut-être tentant de recourir à `defer` dans des situations où
+une fonction à besoin de retourner une valeur qui doit également être
+modifiée, comme, par exemple, dans l'implémentation de l'opérateur
+post-fix `++` :
 
 ```swift
 postfix func ++(inout x: Int) -> Int {
@@ -398,8 +407,9 @@ postfix func ++(inout x: Int) -> Int {
 }
 ```
 
-In this case, `defer` offers a clever alternative.
-Why create a temporary variable when we can just defer the increment?
+Dans un tel cas, `defer` offre une alternative astucieuse.
+Pourquoi créer une variable temporaire quand il est possible de
+simplement retarder l'incrémentation ?
 
 ```swift
 postfix func ++(inout x: Int) -> Int {
@@ -408,19 +418,22 @@ postfix func ++(inout x: Int) -> Int {
 }
 ```
 
-Clever indeed, yet this inversion of the function's flow harms readability.
-Using `defer` to explicitly alter a program's flow,
-rather than to clean up allocated resources,
-will lead to a twisted and tangled execution process.
+Pour autant qu'elle soit astucieuse, cette inversion du flot du programme
+porte préjudice à sa lisibilité.
+Utiliser `defer` pour intentionnellement altérer le flot d'exécution d'un
+programme, au lieu de s'en tenir à la libération de ressources, conduira
+à un programme dont l'exécution sera compliquée à démêler.
 
 ---
 
-"As wise programmers aware of our limitations,"
-we must weigh the benefits of each language feature against its costs.
+"Tels des programmeurs conscients de nos limites",
+nous devons soupeser consciencieusement le rapport bénéfice/risque
+de chaque fonctionnalité d'un langage.
 
-A new statement like `guard` leads to a more linear, more readable program;
-apply it as widely as possible.
+Un ajout tel que `guard` permet d'obtenir un code plus linéaire et lisible :
+il faut l'utiliser aussi souvent que possible.
 
-Likewise, `defer` solves a significant challenge
-but forces us to keep track of its declaration as it scrolls out of sight;
-reserve it for its minimum intended purpose to prevent confusion and obscurity.
+De la même manière, `defer` permet également de résoudre des situations
+compliquées, mais nous force à garder en tête sa présence et son impact
+sur l'exécution du programme : il sera sage de le réserver aux situations
+pour lequelles il a réellement été conçu.
