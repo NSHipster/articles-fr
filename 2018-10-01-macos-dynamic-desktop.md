@@ -3,109 +3,103 @@ title: macOS Dynamic Desktop
 author: Mattt
 category: ""
 excerpt: >
-  Dark Mode is one of the most popular additions to macOS ---
-  especially among us developer types.
-  If you triangulate between that and Night Shift, 
-  introduced a couple of years prior,
-  you get the Dynamic Desktop feature, new in Mojave.
+  Le mode d'apparence sombre est un des ajouts à macOS le plus
+  populaire --- tout particulièrement chez les développeurs.
+  Suite logique de cette fonctionnalité et de Night Shift,
+  qui existe depuis déjà 2 ans, les fond d'écran dynamique
+  font leur apparition sur macOS Mojave.
 status:
   swift: 4.2
 ---
 
-Dark Mode is one of the most popular additions to macOS ---
-especially among us developer types,
-who tend towards light-on-dark color themes in text editors
-and appreciate this new visual consistency across the system.
+Le mode d'apparence sombre est un des ajouts à macOS le plus
+populaire --- tout particulièrement chez les développeurs,
+qui ont une préférence naturelle pour les thèmes sombres
+des éditeurs de texte et apprécieront la cohérence visuelle
+à travers le système d'exploitation.
 
-A couple of years back, there was similar fanfare for Night Shift,
-which helped to reduce eye strain
-from hacking late into the night (or early in the morning, as it were).
+Il y a deux ans de cela, Night Shift avait généré un engouement
+similaire, car il permettait de réduire la fatigue oculaire lors
+d'une utilisation tard dans la nuit (ou plutôt, très tôt le matin).
 
-If you triangulate from those two macOS features,
-you get Dynamic Desktops, also new in Mojave.
-Now when you go to "System Preferences > Desktop & Screen Saver",
-you have the option to select a "Dynamic" desktop picture
-that changes throughout the day, based on your location.
+Suite logique de ces deux fonctionnalités de macOS, les fonds d'écran
+dynamiques débarquent sur macOS Mojave.
+Désormais, lorsque vous accédez à "Préférences Système > Bureau et économiseur d'écran",
+vous avez l'option de sélectionner un fond d'écran "dynamique" qui évolue
+tout au long de la journée, en fonction de votre position géographique.
 
 {% asset desktop-and-screen-saver-preference-pane.png %}
 
-The result is subtle and delightful.
-Having a background that tracks the passage of time
-makes the desktop feel alive;
-in tune with the natural world.
-(If nothing else,
-it makes for a lovely visual effect when switching dark mode on and off)
+Le résultat est à la fois subtil et satisfaisant.
+Avoir un arrière-plan qui suit l'écoulement du temps rend le bureau
+plus vivant, plus en phase avec le monde extérieur.
+(De plus, cela permet un effet visuel très réussi lors du passage du
+thème clair au thème sombre)
 
-_But how does it work, exactly?_<br/>
-That's the question for this week's NSHipster article.
+_Mais comment cela fonctionne-t-il, exactement ?_<br/>
+C'est la question que cherche à resoudre cet article de NSHipster.
 
-The answer involves a deep dive into image formats,
-a little bit of reverse-engineering
-and even some spherical trigonometry.
+La réponse va nous demander d'explorer en profondeur les formats
+d'image, de pratiquer l'ingénierie inversée, et fera même intervenir
+de un peu trigonométrie dans l'espace.
 
 ---
 
-The first step to understanding how Dynamic Desktop works
-is to get hold of a dynamic image.
+La première étape pour comprendre comment marchent les fonds d'écran
+dynamiques est de récupérer une de leurs images dynamiques.
 
-If you're running macOS Mojave
-open Finder,
-select "Go > Go to Folder..." (<kbd>⇧</kbd><kbd>⌘</kbd><kbd>G</kbd>),
-and enter "/Library/Desktop Pictures/".
+Si votre Mac tourne sous macOS Mojave, ouvrez le Finder,
+sélectionnez "Aller > Aller au dossier..." (<kbd>⇧</kbd><kbd>⌘</kbd><kbd>G</kbd>),
+puis saisissez "/Library/Desktop Pictures/".
 
 {% asset go-to-library-desktop-pictures.png %}
 
-In this directory,
-you should find a file named "Mojave.heic".
-Double-click it to open it in Preview.
+Dans ce répertoire, vous devriez trouver un fichier nommé "Mojave.heic".
+Double-cliquez dessus pour l'ouvrir dans Aperçu.
 
 {% asset mojave-heic.png %}
 
-In Preview,
-the sidebar shows a list of thumbnails numbered 1 through 16,
-each showing a different view of the desert scene.
+Dans Aperçu, la barre latérale montre une liste de miniatures, numérotées
+de 1 à 16, montrant chacune une différente vue de cette scène désertique.
 
 {% asset mojave-dynamic-desktop-images.png %}
 
-If we select "Tools > Show Inspector" (<kbd>⌘</kbd><kbd>I</kbd>),
-we get some general information about what we're looking at:
+Si nous sélectionnons "Outils > Afficher l'inspecteur" (<kbd>⌘</kbd><kbd>I</kbd>),
+nous obtenons quelques informations d'ordre général :
 
 {% asset mojave-heic-preview-info.png %}
 
-Unfortunately, that's about all Preview gives us
-(at least at the time of writing).
-If we click on the next panel over, "More Info Inspector",
-we don't learn a whole lot more about our subject:
+Malheureusement, c'est à peu près tout ce qu'Aperçu est capable de nous fournir
+(dû moins au moment où cet article est écrit).
+Si nous cliquons sur l'onglet "En savoir plus", nous n'en apprenons pas
+davantage :
 
-|              |            |
-| ------------ | ---------- |
-| Color Model  | RGB        |
-| Depth:       | 8          |
-| Pixel Height | 2,880      |
-| Pixel Width  | 5,120      |
-| Profile Name | Display P3 |
+|                    |             |
+| ------------------ | ----------- |
+| Mode de couleurs   | RGB         |
+| Profondeur:        | 8           |
+| Hauteur en pixels  | 2 880       |
+| Largeur en pixels  | 5 120       |
+| Nom du profil      | Afficher P3 |
 
 {% info %}
 
-The `.heic` file extension corresponds to image containers
-encoded using the <abbr title="High-Efficiency Image File Format">HEIF</abbr>,
-or High-Efficiency Image File Format
-(which is itself based on <abbr title="High-Efficiency Video Compression">HEVC</abbr>,
-or High-Efficiency Video Compression ---
-also known as H.265 video).
-For more information, check out
-[WWDC 2017 Session 503 "Introducing HEIF and HEVC"](https://developer.apple.com/videos/play/wwdc2017/503/)
+L'extension de fichier `.heic` correspond à un container d'images
+encodées en utilisant <abbr title="High-Efficiency Image File Format">HEIF</abbr>
+ou High-Efficiency Image File Format (qui est lui même basé sur <abbr title="High-Efficiency Video Compression">HEVC</abbr>
+ou High-Efficiency Video Compression, plus connu sous l'appellation H.265 vidéo).
+Pour plus d'informations sur le sujet, vous pouvez consulter : [WWDC 2017 Session 503 "Introducing HEIF and HEVC"](https://developer.apple.com/videos/play/wwdc2017/503/)
 
 {% endinfo %}
 
-If we want to learn more,
-we'll need to roll up our sleeves
-and get our hands dirty with some low-level APIs.
+Si nous souhaitons en apprendre plus,
+nous allons devoir retrousser nos manches,
+et mettre les mains dans le camboui des API de bas niveau.
 
-## Digging Deeper with CoreGraphics
+## En Apprendre Plus Grâce à CoreGraphics
 
-Let's start our investigation by creating a new Xcode Playground.
-For simplicity, we can hard-code a URL to the "Mojave.heic" file on our system.
+Commençons notre enquête par la création d'un nouveau Playground sur Xcode.
+Pour plus de facilité, nous pouvons écrire en dur une URL vers le fichier "Mojave.heic".
 
 ```swift
 import Foundation
@@ -115,9 +109,9 @@ import CoreGraphics
 let url = URL(fileURLWithPath: "/Library/Desktop Pictures/Mojave.heic")
 ```
 
-Next, create a `CGImageSource`,
-copy its metadata,
-and enumerate over each of its tags:
+Ensuite, créons une `CGImageSource`,
+copions ses méta-données,
+et énumérons un par un ses attributs :
 
 ```swift
 let source = CGImageSourceCreateWithURL(url as CFURL, nil)!
@@ -134,9 +128,9 @@ for tag in tags {
 }
 ```
 
-When we run this code, we get two results:
-`hasXMP`, which has a value of `"True"`,
-and `solar`, which has a decidedly less understandable value:
+Quand nous exécutons ce code, nous obtenons deux résultats :
+`hasXMP`, qui possède la valeur `"True"`,
+et `solar`, qui possède une valeur bien plus cryptique :
 
 ```
 YnBsaXN0MDDRAQJSc2mvEBADDBAUGBwgJCgsMDQ4PEFF1AQFBgcICQoLUWlRelFh
@@ -156,15 +150,14 @@ kAGSAZsBpAGtAa8BuAHBAcMBzAHOAdcB4AHpAesB9AAAAAAAAAIBAAAAAAAAAEkA
 AAAAAAAAAAAAAAAAAAH9
 ```
 
-### Shining Light on Solar
+### Éclairons le Rôle de `solar`
 
-Most of us would look at that wall of text
-and quietly close the lid of our MacBook Pro.
-But, as some of you surely noticed,
-this text looks an awful lot like it's
-[Base64-encoded](https://en.wikipedia.org/wiki/Base64).
+Confrontés à cette énigme, certains pourraient être tentés
+d'abandonner.
+Mais, comme d'autres pourront le remarquer, ce texte ressemble
+étrangement à un [encodage en Base64](https://en.wikipedia.org/wiki/Base64).
 
-Let's test out our hypothesis in code:
+Testons notre hypothèse avec ce code :
 
 ```swift
 if name == "solar" {
@@ -177,14 +170,12 @@ if name == "solar" {
 bplist00Ò\u{01}\u{02}\u{03}...
 </samp>
 
-What's that?
-`bplist`, followed by a bunch of garbled nonsense?
+Qu'est-ce donc ?
+`bplist`, suivi d'un contenu des plus confus ?
 
-By golly, that's the
-[file signature](https://en.wikipedia.org/wiki/File_format#Magic_number)
-for a [binary property list](https://en.wikipedia.org/wiki/Property_list).
+Bon sang, ils s'agit de l'[identificateur](https://en.wikipedia.org/wiki/File_format#Magic_number) d'un fichier [`.plist` binaire](https://en.wikipedia.org/wiki/Property_list).
 
-Let's see if `PropertyListSerialization` can make any sense of it...
+Voyons si `PropertyListSerialization` peut nous aider à y voir plus clair...
 
 ```swift
 if name == "solar" {
@@ -219,49 +210,47 @@ if name == "solar" {
 )
 ```
 
-_Now we're talking!_
+_Les affaires reprennent !_
 
-We have two top-level keys:
+Nous avons deux clés de premier niveau :
 
-The `ap` key corresponds to
-a dictionary containing integers for the `d` and `l` keys.
+La clé `ap` correspond à dictionnaire d'entiers associés aux
+clés `d` et `l`.
 
-The `si` key corresponds to
-an array of dictionaries with integer and floating-point values.
-Of the nested dictionary keys,
-`i` is the easiest to understand:
-incrementing from 0 to 15,
-they're the index of the image in the sequence.
-It'd be hard to guess `a` and `z` without any additional information,
-but they turn out to represent the altitude (`a`) and azimuth (`z`)
-of the sun in the corresponding pictures.
+La clé `si` correspond à un tableau de dictionnaires, contenants
+des nombres entiers et flottants.
+Dans ces dictionnaires, `i` est la valeur la plus simple à comprendre :
+allant de 0 à 15, il s'agit de l'index de l'image dans la séquence.
+Il serait difficile de deviner le sens de `a` et `z` sans information
+additionnelle, mais ils se trouvent qu'ils représentent l'altitude (`a`)
+et l'azimuth (`z`) du soleil pour chacune des images.
 
-### Calculating Solar Position
+### Calculer la Position du Soleil
 
-At the time of writing,
-those of us in the northern hemisphere
-are settling into the season of autumn
-and its shorter, colder days,
-whereas those of us in the southern hemisphere
-are gearing up for hotter and longer days.
-The changing of the seasons reminds us that
-the duration of a solar day depends where you are on the planet
-and where the planet is in its orbit around the sun.
+Au moment où cet article est écrit,
+ceux d'entre-nous qui sont dans l'hémisphère nord
+voient arriver le début de l'hiver, et de ses jours
+plus courts et plus froids, alors que ceux de
+l'hémisphère sud se préparent pour des températures
+plus chaudes et des jours plus longs.
+Le changement de saison nous rappelle que la durée
+d'une journée dépend de l'endroit de la planète où
+l'on se trouve, ainsi que de la position de la planète
+sur son orbite autour du soleil.
 
-The good news is that astronomers can tell you ---
-with perfect accuracy ---
-where the sun is in the sky for any location or time.
-The bad news is that
-the necessary calculations are
-[complicated](https://en.wikipedia.org/wiki/Position_of_the_Sun)
-to say the least.
+La bonne nouvelle est que les astronome sont capable
+de prédire --- avec une précision parfaite --- la
+position du soleil dans le ciel à tout moment et en
+tout lieu.
+La mauvaise nouvelle est que les calculs nécessaires
+sont pour le moins [complexes](https://en.wikipedia.org/wiki/Position_of_the_Sun).
 
-Honestly, we don't really understand it ourselves,
-and are pretty much just porting whatever code we manage to find online.
-After some trial and error,
-we were able to arrive at
-[something that seems to work](https://github.com/NSHipster/DynamicDesktop/blob/master/SolarPosition.playground)
-(PRs welcome!):
+Toutefois, nous n'avons pas réellement besoin de les
+comprendre par nous-mêmes, car nous nous contenterons
+de reprendre du code trouvé sur Internet.
+Après quelques recherches, nous sommes parvenus à
+mettre la main sur [quelque chose qui semble fonctionner](https://github.com/NSHipster/DynamicDesktop/blob/master/SolarPosition.playground)
+(les contributions sont les bienvenues !) :
 
 ```swift
 import Foundation
@@ -284,29 +273,30 @@ Solar Position on Oct 1, 2018 at 12:00
 180.73470025840783° Az / 49.27482549913847° El
 </samp>
 
-At noon on October 1, 2018,
-the sun shines on Apple Park from the south,
-about halfway between the horizon and directly overhead.
+À midi, le 1er octobre 2018,
+le soleil brillait sur Apple Park depuis le sud,
+à peu près à mi-chemin entre l'horizon et la verticale.
 
-If track the position of the sun over an entire day,
-we get a sinusoidal shape reminiscent of the Apple Watch "Solar" face.
+Si nous suivons l'évolution de la position du soleil durant
+une journée, nous obtenons une sinusoïde, qui ne manquera pas
+de nous rappeler un certain cadran de l'Apple Watch.
 
 {% asset solar-position-watch-faces.jpg %}
 
-### Extending Our Understanding of XMP
+### Mieux Comprendre le Format XMP
 
-Alright, enough astronomy for the moment.
-Let's ground ourselves in something much more banal:
-_de facto_ XML metadata standards.
+Trêves d'astronomie pour le moment.
+Intéressons nous plutôt à quelque chose de plus terre-à-terre :
+les (pseudo-)standards XML de métadonnées.
 
-Remember the `hasXMP` metadata key from before?
-Yeah, _that_.
+Vous vous rappelez de cette clé `hasXMP` vue précédemment ?
 
 <abbr title="Extensible Metadata Platform">XMP</abbr>,
-or Extensible Metadata Platform,
-is a standard format for tagging files with metadata.
-What does XMP look like?
-Brace yourself:
+ou Extensible Metadata Platform,
+est un format standard pour annoter des fichiers avec
+des métadonnées.
+A quoi XMP peut-il ressembler ?
+Préparez-vous à l'impact :
 
 ```swift
 let xmpData = CGImageMetadataCreateXMPData(metadata, nil)
@@ -327,17 +317,16 @@ print(xmp)
 </x:xmpmeta>
 ```
 
-_Yuck._
+_Ouch._
 
-But it's a good thing that we checked.
-We'll need to honor that `apple_desktop` namespace
-to make our own Dynamic Desktop images work correctly.
+Mais cela ne fait pas de mal d'être allé voir.
+Nous aurons besoin d'exploiter le namespace `apple_desktop`
+pour produire nos propres fonds d'écran dynamiques.
 
-Speaking of, let's get started on that.
+## Créer Nos Propres Fonds d'Écran Dynamiques
 
-## Creating Our Own Dynamic Desktop
-
-Let's create a data model to represent a Dynamic Desktop:
+Commençons par créer un modèle de données qui représentera un fond
+d'écran dynamique :
 
 ```swift
 struct DynamicDesktop {
@@ -362,20 +351,21 @@ struct DynamicDesktop {
 }
 ```
 
-Each Dynamic Desktop comprises an ordered sequence of images,
-each of which has image data, stored in a `CGImage` object,
-and metadata, as discussed before.
-We adopt `Codable` in the `Metadata` declaration
-in order for the compiler to automatically synthesize conformance.
-We'll take advantage of that when it comes time
-to generate the Base64-encoded binary property list.
+Chaque fond d'écran dynamique comporte une liste numérotée d'images,
+chacune possédant les données binaires de l'image, stockées dans un objet `CGImage`,
+ainsi que les métadonnées discutées précédemment.
+Nous faisons se conformer `Metadata` à `Codable` dès sa déclaration,
+afin de permettre au compilateur de générer le code nécessaire à
+l'adoption de ce protocole.
+Nous nous en servirons lorsqu'il faudra les représenter sous forme
+Base64 binaire.
 
 ### Writing to an Image Destination
 
-First, create a `CGImageDestination`
-with a specified output URL.
-The file type is `heic` and the source count
-is equal to the number of images to be included.
+En premier, nous créons un `CGImageDestination`, en spécifiant
+l'URL de sortie.
+Le format de fichier est `heic` et le paramètre `sourceCount`
+correspond au nombre d'images qui doivent être inclues.
 
 ```swift
 guard let imageDestination = CGImageDestinationCreateWithURL(
@@ -389,10 +379,11 @@ else {
 }
 ```
 
-Next, enumerate over each image in the dynamic desktop object.
-By using the `enumerated()` method,
-we also get the current `index` for each loop
-so that we can set the image metadata on the first image:
+Ensuite, nous itérons sur chaque image de notre fond d'écran
+dynamique.
+En utilisant la méthode `enumerated()`, nous obtenons également
+l'`index` de chaque image, ce qui nous permet d'écrire les
+métadonnées propres à la première image :
 
 ```swift
 for (index, image) in dynamicDesktop.images.enumerated() {
@@ -424,14 +415,12 @@ for (index, image) in dynamicDesktop.images.enumerated() {
 }
 ```
 
-Aside from the unrefined nature of Core Graphics APIs,
-the code is pretty straightforward.
-The only part that requires further explanation is the call to
-`CGImageMetadataTagCreate(_:_:_:_:_:)`.
+En dépit de leur nature brute de décoffrage, les API
+CoreGraphics sont plutôt simple à suivre.
+La seule partie qui requiert une explication poussée est
+l'appel à `CGImageMetadataTagCreate(_:_:_:_:_:)`.
 
-Because of a mismatch between how image and container metadata are structured
-and how they're represented in code,
-we have to implement `Encodable` for `DynamicDesktop` ourselves:
+A cause de la différence entre la façon dont les métadonnées sont représentées avant et après sérialisation, nous devons écrire notre propre implémentation de `Encodable` pour le type `DynamicDesktop` :
 
 ```swift
 extension DynamicDesktop: Encodable {
@@ -464,8 +453,8 @@ extension DynamicDesktop: Encodable {
 }
 ```
 
-With that in place,
-we can implement the aforementioned `base64EncodedMetadata()` method like so:
+Une fois ceci en place, nous pouvons implémenter la méthode
+`base64EncodedMetadata()` comme suit :
 
 ```swift
 extension DynamicDesktop {
@@ -479,10 +468,10 @@ extension DynamicDesktop {
 }
 ```
 
-Once the for-in loop is exhausted,
-and all images and metadata are written,
-we call `CGImageDestinationFinalize(_:)` to finalize the image source
-and write the image to disk.
+Une fois la boucle `for-in` arrivée à son terme,
+toutes les images et métadonnées ont été enregistrées,
+nous appelons alors `CGImageDestinationFinalize(_:)` pour
+finaliser l'opération et enregistrer sur le disque.
 
 ```swift
 guard CGImageDestinationFinalize(imageDestination) else {
@@ -490,85 +479,82 @@ guard CGImageDestinationFinalize(imageDestination) else {
 }
 ```
 
-If everything worked as expected,
-you should now be the proud owner of a brand new Dynamic Desktop.
-Nice!
+Si tout s'est déroulé comme prévu, vous devriez être l'heureux
+propriétaire d'un fond d'écran dynamique flambant neuf.
+Bien joué !
 
 ---
 
-We love the Dynamic Desktop feature in Mojave,
-and are excited to see the same proliferation of them
-that we saw when wallpapers hit the mainstream with Windows 95.
+Nous adorons les fonds d'écrans dynamique de Mojave,
+et nous some impatients de les voir rentrer dans les moeurs,
+de la même manière que les fond d'écran classique
+à l'époque de Windows 95.
 
-If you're so inclined,
-here are a few ideas for where to go from here:
+Si cela vous intéresse,
+voici quelques pistes pour aller plus loin :
 
-### Automatically Generating a Dynamic Desktop from Photos
+### Générer Automatiquement un Fond d'Écran Dynamique depuis Photos
 
-It's mind-blowing to think that something as transcendent as
-the movement of celestial bodies
-can be reduced to a system of equations with two inputs:
-time and place.
+C'est incroyable de réaliser que quelque chose d'aussi transcendant
+que le mouvement des corps célestes peut-être réduit à un système
+d'équations ne faisant appel qu'à deux paramètres : le temps et le lieu.
 
-In the example before,
-this information is hard-coded,
-but you could ostensibly extract that information
-from images automatically.
+Dans l'exemple précédent, cette information est écrite en dur, mais elle
+pourrait bien sûr être automatiquement extraite depuis des images.
 
-By default,
-the camera on most phones captures
-[Exif metadata](https://en.wikipedia.org/wiki/Exif)
-each time a photo is snapped.
-This metadata can include the time which the photo was taken
-and the GPS coordinates of the device at the time.
+Par défaut, les appareils photo de la majorité des téléphones enregistrent
+des [métadonnées Exif](https://en.wikipedia.org/wiki/Exif) à chaque fois qu'une
+photo est prise.
+Ces métadonnées incluent l'heure de la prise de vue, ainsi que les coordonnées
+GPS de l'appareil.
 
-By reading time and location information directly from image metadata,
-you can automatically determine solar position
-and simplify the process of generating a Dynamic Desktop
-from a series of photos.
+En exploitant ces informations directement depuis les métadonnées des
+images, il est possible de déterminer la position du soleil et donc
+de simplifier le processus de création d'un fond d'écran dynamique à
+partir d'une série de photos.
 
-### Shooting a Time Lapse on Your iPhone
 
-Want to put your new iPhone XS to good use?
-(Or more accurately,
-"Want to use your old iPhone for something productive
-while you procrastinate selling it?")
+### Réaliser un Time Lapse avec son iPhone
 
-Mount your phone against a window,
-plug it into a charger,
-set the Camera to Timelapse mode,
-and hit the "Record" button.
-By extracting key frames from the resulting video,
-you can make your very own _bespoke_ Dynamic Desktop.
+Vous voulez mettre votre nouvel iPhone XS à profit ?
+(Ou plutôt, "Vous voulez utiliser votre ancien iPhone
+pour quelque chose d'utile pendant que vous trainez à
+le revendre ?")
 
-You might also want to check out
-[Skyflow](https://itunes.apple.com/us/app/skyflow-time-lapse-shooting/id937208291?mt=8)
-or similar apps that more easily allow you to
-take still photos at predefined intervals.
+Placez votre téléphone contre une fenêtre,
+branchez lui son chargeur,
+passez l'app Appareil photo sur le mode "Accéléré"
+et démarrez l'enregistrement.
+En extrayant les images-clés de la vidéo ainsi produite,
+vous pourrez réaliser votre propre et unique fond d'écran
+dynamique.
 
-### Generating Landscapes from GIS Data
+Vous serez peut-être intéressé par [Skyflow](https://itunes.apple.com/us/app/skyflow-time-lapse-shooting/id937208291?mt=8)
+ou tout autre app permettant la prise de photo à intervalles
+réguliers.
 
-If you can't stand to be away from your phone for an entire day (sad)
-or don't have anything remarkable to look (also sad),
-you could always create your own reality (sounds sadder than it is).
+### Générer un Paysage depuis des Données GIS
 
-Using an app like
-[Terragen](https://planetside.co.uk),
-you can render photo-realistic 3D landscapes,
-with fine-tuned control over the earth, sun, and sky.
+Si vous ne pouvez pas vous passer de votre téléphone pendant toute
+une journée (ce qui est triste), ou si vous n'avez rien de valable à
+prendre en photo (ce qui est également triste), vous n'avez qu'à
+créer votre propre paysage (ce qui semble plus triste qu'il ne l'est).
 
-You can make it even easier for yourself by
-downloading an elevation map from the U.S. Geological Survey's
-[National Map website](https://viewer.nationalmap.gov/basic/)
-and using that as a template for your 3D rendering project.
+En utilisant une app comme [Terragen](https://planetside.co.uk),
+vous pouvez produire des paysages 3D photo-réalistes, avec un grand
+contrôle sur la Terre, le Soleil et le ciel.
 
-### Downloading Pre-Made Dynamic Desktops
+Vous pouvez même vous simplifier les choses en téléchargeant une
+carte altimétrique depuis [le site](https://viewer.nationalmap.gov/basic/)
+du département américain d'études géologiques et en l'utilisant comme
+modèle pour votre projet de rendu 3D.
 
-Or if you have actual work to do
-and can't be bothered to spend your time making pretty pictures,
-you can always just pay someone else to do it for you.
+### Télécharger des Fond D'Écran Dynamiques Prêts à l'Emploi
 
-We're personally fans of the the
-[24 Hour Wallpaper](https://www.jetsoncreative.com/24hourwallpaper/) app.
-If you have any other recommendations,
-[@ us on Twitter!](https://twitter.com/NSHipster/).
+Mais si vous êtes déjà bien occupé par votre travail et que vous n'avez
+pas le loisir de passer du temps à prendre de belles images, vous pouvez
+toujours rémunérer quelqu'un pour le faire à votre place.
+
+Nous apprécions particulièrement l'app [24 Hour Wallpaper](https://www.jetsoncreative.com/24hourwallpaper/).
+Si vous avez d'autres recommandations, [faites nous le savoir sur Twitter !](https://twitter.com/NSHipster/).
+
