@@ -2,7 +2,7 @@
 title: Method Swizzling
 author: Mattt
 category: Objective-C
-excerpt: "Method swizzling is the process of changing the implementation of an existing selector. It's a technique made possible by the fact that method invocations in Objective-C can be changed at runtime, by changing how selectors are mapped to underlying functions in a class's dispatch table."
+excerpt: "Le swizzling de méthodes est le processus consistant à changer l'implémentation associée à un sélecteur existant. Cette technique est rendue possible par le fait qu'en Objective-C, l'invocation de méthodes puisse être modifiée à l'exécution, en modifiant la façon dont des sélecteurs sont associés à leurs fonctions sous-jacentes dans la table d'aiguillage d'une classe."
 status:
     swift: n/a
     reviewed: January 28, 2015
@@ -20,17 +20,17 @@ status:
 > With all your power ... What would you do?<br/>
 > <cite><strong>The Flaming Lips</strong>, <em><a href="https://en.wikipedia.org/wiki/The_Yeah_Yeah_Yeah_Song_(With_All_Your_Power)">"The Yeah Yeah Yeah Song (With All Your Power)"</a></em></cite>
 
-In last week's article about [associated objects](https://nshipster.com/associated-objects/), we began to explore the dark arts of the Objective-C runtime. This week, we venture further, to discuss what is perhaps the most contentious of runtime hackery techniques: method swizzling.
+Dans l'article de la semaine précédente sur les [associated objects](https://nshipster.com/associated-objects/), nous avons commencé à explorer les arcanes de l'environnement d'exécution de l'Objective-C. Cette semaine, nous nous aventurons plus avant, pour discuter de ce qui est peut-être la plus controversée des astuces qui tirent parti de cet environnement : le swizzling de méthodes.
 
 * * *
 
-Method swizzling is the process of changing the implementation of an existing selector. It's a technique made possible by the fact that method invocations in Objective-C can be changed at runtime, by changing how selectors are mapped to underlying functions in a class's dispatch table.
+Le swizzling de méthodes est le processus consistant à changer l'implémentation associée à un sélecteur existant. Cette technique est rendue possible par le fait qu'en Objective-C, l'invocation de méthodes puisse être altérée à l'exécution, en modifiant la façon dont des sélecteurs sont associés à leurs fonctions sous-jacentes dans la table d'aiguillage d'une classe. 
 
-For example, let's say we wanted to track how many times each view controller is presented to a user in an iOS app:
+Par exemple, disons que nous souhaitons savoir combien de fois chaque view controller d'une app iOS est présenté à l'utilisateur.
 
-Each view controller could add tracking code to its own implementation of `viewDidAppear:`, but that would make for a ton of duplicated boilerplate code. Subclassing would be another possibility, but it would require subclassing `UIViewController`, `UITableViewController`, `UINavigationController`, and every other view controller class—an approach that would also suffer from code duplication.
+Chaque view controller pourrait ajouter le code approprié à son implémentation de `viewDidAppear:`, mais cela produirait une énorme quantité de code dupliqué. L'héritage pourrait être une autre approche, mais cela nécessiterait de sous-classer `UIViewController`, `UITableViewController`, `UINavigationController`, et tous les autres types de contrôleurs – une approche qui produirait également du code dupliqué.
 
-Fortunately, there is another way: **method swizzling** from a category. Here's how to do it:
+Fort heureusement, il existe une alternative : le swizzling de méthode depuis une catégorie. Voici comment cela fonctionne :
 
 ```objc
 #import <objc/runtime.h>
@@ -81,45 +81,46 @@ Fortunately, there is another way: **method swizzling** from a category. Here's 
 @end
 ```
 
-> In computer science, [pointer swizzling](https://en.wikipedia.org/wiki/Pointer_swizzling) is the conversion of references based on name or position to direct pointer references.  While the origins of Objective-C's usage of the term are not entirely known, it's understandable why it was co-opted, since method swizzling involves changing the reference of a function pointer by its selector.
+> En informatique, le [swizzling de pointeur](https://en.wikipedia.org/wiki/Pointer_swizzling) est la conversion de références basées sur un nom ou une position vers de réels pointeurs. Bien que l'usage de ce terme dans le cadre de l'Objective-C ne soit pas complètement clair, il est aisé de comprendre pourquoi il est entré dans les moeurs, puisque le swizzling de méthode implique de remplacer un pointeur de fonction par son sélecteur.
 
-Now, when any instance of `UIViewController`, or one of its subclasses invokes `viewWillAppear:`, a log statement will print out.
+Désormais, quand n'importe quelle instance de `UIViewController`, ou de ses sous-classes appellera `viewWillAppear:`, un message sera écrit à la console.
 
-Injecting behavior into the view controller lifecycle, responder events, view drawing, or the Foundation networking stack are all good examples of how method swizzling can be used to great effect. There are a number of other occasions when swizzling would be an appropriate technique, and they become increasingly apparent the more seasoned an Objective-C developer becomes.
+L'injection d'un comportement dans le cycle de vie d'un view controller, la remontée d'un évènement depuis l'UI, le dessin d'une vue ou la couche réseau de Foundation sont autant de bons exemples de comment le swizzling de méthodes peut être utilisé efficacement. Il existe de nombreuses occasions où le swizzling est une technique pertinente, et elles apparaitront d'autant plus clairement qu'un dévelopeur Objective-C sera expérimenté.
 
-Regardless of _why_ or _where_ one chooses to use swizzling, the _how_ remains absolute:
+Peu importe _pourquoi_ ou _à quel endroit_ l'on choisit de mettre en oeuvre le swizzling, il est impératif de savoir _comment_ s'y prendre :
 
 ## +load vs. +initialize
 
-**Swizzling should always be done in `+load`.**
+**Le swizzling devrait toujours avoir lieu dans `+load`.**
 
-There are two methods that are automatically invoked by the Objective-C runtime for each class. `+load` is sent when the class is initially loaded, while `+initialize` is called just before the application calls its first method on that class or an instance of that class. Both are optional, and are executed only if the method is implemented.
+Il existe deux méthodes qui sont automatiquement appelées pour chaque classe par l'environnement d'exécution de l'Objective-C. `+load` est appelée lorsque la classe est initialement chargée, et `+initialize` juste avant que le premier appel de méthode sur cette classe ou une de ses instances ai lieu. L'implémentation de ces deux méthodes est facultative, et elles ne sont exécutées que si elles sont réellement présentes.
 
-Because method swizzling affects global state, it is important to minimize the possibility of race conditions. `+load` is guaranteed to be loaded during class initialization, which provides a modicum of consistency for changing system-wide behavior. By contrast, `+initialize` provides no such guarantee of when it will be executed—in fact, it may _never_ be called, if that class is never messaged directly by the app.
+Puisque le swizzling de méthodes modifie l'état global, il est important de minimiser la possibilité d'un accès concurrent entre différents threads. `+load` est garantie d'être appelée lors du chargement d'une classe, ce qui minimise les risque lors de la modification de l'état global. A l'inverse, `+initialize` ne fournie pas de telle garantie sur le moment de son appel — de fait, elle ne pourrait _jamais_ être appelée, si sa classe ne reçoit jamais de message de la part de l'app.
 
 ## dispatch_once
 
-**Swizzling should always be done in a `dispatch_once`.**
+**Le swizzling devrait toujours avoir lieu dans un `dispatch_once`.**
 
-Again, because swizzling changes global state, we need to take every precaution available to us in the runtime. Atomicity is one such precaution, as is a guarantee that code will be executed exactly once, even across different threads. Grand Central Dispatch's `dispatch_once` provides both of these desirable behaviors, and should be considered as much a standard practice for swizzling as they are for [initializing singletons](https://nshipster.com/c-storage-classes/).
+Une fois encore, puisque le swizzling modifie l'état global, nous nous devons de mettre en oeuvre toutes les précautions que permet l'environnement d'exécution. L'atomicité est une de ces précautions, car elle garantie que le code ne sera exécuté qu'une seule fois, même entre différents threads. La fonction `dispatch_once` de Grand Central Dispatch fournie ces garanties, et doit donc être considérée comme aussi indispensable lors d'un swizzling que lors de [l'initialisation d'un singleton](https://nshipster.com/c-storage-classes/).
 
 ## Selectors, Methods, & Implementations
 
-In Objective-C, _selectors_, _methods_, and _implementations_ refer to particular aspects of the runtime, although in normal conversation, these terms are often used interchangeably to generally refer to the process of message sending.
+En Objective-C, les _sélecteurs_, _méthodes_, et _implémentations_, bien que souvent utilisés de façon interchangeable, font référence à des aspects bien distincts de l'environnement d'exécution.
 
-Here is how each is described in Apple's [Objective-C Runtime Reference](https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ObjCRuntimeRef/Reference/reference.html#//apple_ref/c/func/method_getImplementation):
+Voici la façon dont la [documentation d'Apple](https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ObjCRuntimeRef/Reference/reference.html#//apple_ref/c/func/method_getImplementation) les décrits :
 
-> - Selector (`typedef struct objc_selector *SEL`): Selectors are used to represent the name of a method at runtime. A method selector is a C string that has been registered (or "mapped") with the Objective-C runtime. Selectors generated by the compiler are automatically mapped by the runtime when the class is loaded .
-> - Method (`typedef struct objc_method *Method `): An opaque type that represents a method in a class definition.
-> - Implementation (`typedef id (*IMP)(id, SEL, ...)`): This data type is a pointer to the start of the function that implements the method. This function uses standard C calling conventions as implemented for the current CPU architecture. The first argument is a pointer to self (that is, the memory for the particular instance of this class, or, for a class method, a pointer to the metaclass). The second argument is the method selector. The method arguments follow.
+> - Sélecteur ((`typedef struct objc_selector *SEL`) : les sélecteurs sont utilisés pour représenter le nom d'une méthode lors de l'exécution. Un sélecteur de méthode est une chaîne de caractères C qui a été enregistrée (ou associée) à l'environnement d'exécution Objective-C. Les sélecteurs générés par le compilateur sont automatiquement associés à l'environnement d'exécution lorsque la classe est chargée.
+> - Méthode (`typedef struct objc_method *Method `) : un type opaque représentant une méthode dans la définition d'une classe.
+> - Implémentation (`typedef id (*IMP)(id, SEL, ...)`) : ce type de données est un pointeur vers le début d'une fonction qui implémente la méthode. Cette fonction utilise la convention d'appel C standard de l'architecture processeur courante. Le premier paramètre est un pointeur vers self (c'est à dire, l'emplacement en mémoire de l'instance de la classe, ou, pour une méthode de classe, un pointeur vers l'object métaclasse). Le second paramètre est le sélecteur de la méthode. Suivent les arguments de la méthode.
 
-The best way to understand the relationship between these concepts is as follows: a class (`Class`) maintains a dispatch table to resolve messages sent at runtime; each entry in the table is a method (`Method`), which keys a particular name, the selector (`SEL`), to an implementation (`IMP`), which is a pointer to an underlying C function.
+La meilleure façon de saisir le lien entre ces concepts est le suivant : une classe (`Class`) maintient une table d'aiguillage permettant de résoudre l'envoi de messages à l'exécution ; chaque entrée de cette table est une méthode (`Method`), avec pour valeur associée un sélecteur (`SEL`), vers une implémentation (`IMP`), qui est un pointeur vers la fonction C sous-jacente.
 
-To swizzle a method is to change a class's dispatch table in order to resolve messages from an existing selector to a different implementation, while aliasing the original method implementation to a new selector.
+Swizzler une méthode revient à modifier la table d'aiguillage d'une classe de façon à ce que les messages d'un sélecteur existant soient aiguillés vers une implémentation différente, tout en associant l'implémentation originale à un nouveau sélecteur.
 
-## Invoking `_cmd`
 
-It may appear that the following code will result in an infinite loop:
+## Appeler `_cmd`
+
+Il pourrait sembler que le code suivant résulte en une boucle infinie :
 
 ```objc
 - (void)xxx_viewWillAppear:(BOOL)animated {
@@ -128,21 +129,21 @@ It may appear that the following code will result in an infinite loop:
 }
 ```
 
-Surprisingly, it won't. In the process of swizzling, `xxx_viewWillAppear:` has been reassigned to the original implementation of `UIViewController -viewWillAppear:`. It's good programmer instinct for calling a method on `self` in its own implementation to raise a red flag, but in this case, it makes sense if we remember what's _really_ going on. However, if we were to call `viewWillAppear:` in this method, it _would_ cause an infinite loop, since the implementation of this method will be swizzled to the `viewWillAppear:` selector at runtime.
+De façon surprenante, ce n'est pas le cas. Lors du processus de swizzling, `xxx_viewWillAppear:` a été réassigné à l'implémentation originale de `UIViewController -viewWillAppear:`. Il est tout à fait normal qu'appeler à nouveau une même méthode sur self dans sa propre implémentation soit perçu comme dangereux, cependant, dans ce cas, il est nécessaire de se rappeler ce qui est _réellement_ entrain d'avoir lieu. Cependant, si nous venions à appeler `viewWillAppear:` dans cette même méthode, cela produirait _effectivement_ une boucle infinie, puisque l'implémentation de cette méthode sera associée au sélecteur `viewWillAppear:` lors de l'exécution.
 
-> Remember to prefix your swizzled method name, the same way you might any other contentious category method.
+> Rappelez-vous de préfixer les noms de vos méthodes swizzlées, de la même manière que vous le feriez pour tout autre méthode déclarée dans une catégorie.
 
-## Considerations
+## Discussion
 
-Swizzling is widely considered a voodoo technique, prone to unpredictable behavior and unforeseen consequences. While it is not the safest thing to do, method swizzling is reasonably safe, when the following precautions are taken:
+Le swizzling est largement considéré comme une forme de magie noire, susceptible de mener à des comportements inattendus et des conséquences imprévues. Bien qu'il ne s'agisse pas de la plus sûre des approches, elle peut l'être raisonnablement, lorsque les précautions suivantes sont prises :
 
-- **Always invoke the original implementation of a method (unless you have a good reason not to)**: APIs provide a contract for input and output, but the implementation in-between is a black box. Swizzling a method and not calling the original implementation may cause underlying assumptions about private state to break, along with the rest of your application.
-- **Avoid collisions**: Prefix category methods, and make damn well sure that nothing else in your code base (or any of your dependencies) are monkeying around with the same piece of functionality as you are.
-- **Understand what's going on**: Simply copy-pasting swizzling code without understanding how it works is not only dangerous, but is a wasted opportunity to learn a lot about the Objective-C runtime. Read through the [Objective-C Runtime Reference](https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ObjCRuntimeRef/Reference/reference.html#//apple_ref/c/func/method_getImplementation) and browse `<objc/runtime.h>` to get a good sense of how and why things happen. _Always endeavor to replace magical thinking with understanding._
-- **Proceed with caution**: No matter how confident you are about swizzling Foundation, UIKit, or any other built-in framework, know that everything could break in the next release. Be ready for that, and go the extra mile to ensure that in playing with fire, you don't get `NSBurned`.
+- **Toujours appeler l'implémentation originale de la méthode (à moins d'avoir une bonne raison de ne pas le faire)** : les API fournissent un contrat strict sur leurs entrées et sorties, mais l'implémentation située entre les deux est une boite noire. Swizzler une méthode et ne pas appeler l'implémentation originale peut casser certaines suppositions sur l'état interne, et, avec elles, le reste de l'application.
+- **Éviter les collisions** : préfixez les méthodes de catégories, et assurez vous que rien d'autre dans votre code (et dans aucune de vos dépendances) ne cherche à tripoter la même fonctionnalité.
+- **Comprenez ce qui est entrain de se dérouler** : réaliser un swizzling à partir d'un simple copier-coller d'un bout de code sans comprendre son fonctionnement n'est pas seulement dangereux, c'est également une opportunité gâchée d'en apprendre beaucoup sur l'environnement d'exécution Objective-C. Lisez [Objective-C Runtime Reference](https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ObjCRuntimeRef/Reference/reference.html#//apple_ref/c/func/method_getImplementation) et parcourez le fichier `<objc/runtime.h>` pour acquérir une bonne compréhension de pourquoi et comment les choses se produisent. _Faites toujours l'effort de substituer la compréhension à la pensée magique_.
+- **Agissez avec prudence** : peu importe votre niveau de confiance dans le fait de swizzler des fonctionnalités de Foundation, UIKit ou tout autre framework pré-intégré, soyez conscient que tout peut être cassé dans la prochaine version. Soyez prêt à cela, et assurez vous de faire les efforts nécessaire pour que jouer avec le feu ne se termine par par une `NSBrulûre`.
 
-> Feeling gun shy about invoking the Objective-C runtime directly? [Jonathan ‘Wolf’ Rentzsch](https://twitter.com/rentzsch) provides a battle-tested, CocoaPods-ready library called [JRSwizzle](https://github.com/rentzsch/jrswizzle) that will take care of everything for you.
+> Vous ne vous sentez pas capable d'interagir directement avec l'environnement d'exécution Objective-C ? [Jonathan ‘Wolf’ Rentzsch](https://twitter.com/rentzsch) propose une librairie testée et compatible avec CocoaPods appelée [JRSwizzle](https://github.com/rentzsch/jrswizzle), qui s'en chargera pour vous.
 
 * * *
 
-Like [associated objects](https://nshipster.com/associated-objects/), method swizzling is a powerful technique when you need it, but should be used sparingly.
+Tout comme les [associated objects](https://nshipster.com/associated-objects/), le swizzling de méthode est une technique puissante, mais qui devrait être utilisée avec parcimonie.
