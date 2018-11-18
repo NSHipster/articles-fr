@@ -2,7 +2,10 @@
 title: Image Resizing Techniques
 author: Mattt
 category: ""
-excerpt: "Since time immemorial, iOS developers have been perplexed by a singular question: 'How do you resize an image?'. This article endeavors to provide a clear answer to this eternal question."
+excerpt: "Depuis des temps immémoriaux, les développeurs iOS sont restés perplexes
+face à une interrogation singulière : "Comment peut-on redimensionner une
+image ?". Cet article fera tout son possible pour fournir une réponse
+claire à cette éternelle question."
 status:
     swift: 2.0
     reviewed: September 30, 2015
@@ -11,15 +14,32 @@ revisions:
     "2015-09-30": Revised for Swift 2.0, `vImage` method added.
 ---
 
-Since time immemorial, iOS developers have been perplexed by a singular question: "How do you resize an image?". It is a question of beguiling clarity, spurred on by a mutual mistrust of developer and platform. A thousand code samples litter web search results, each claiming to be the One True Solution, and all the others false prophets.
+Depuis des temps immémoriaux, les développeurs iOS sont restés perplexes
+face à une interrogation singulière : "Comment peut-on redimensionner une
+image ?". C'est une question d'une séduisante simplicité, stimulée par
+une défiance mutuelle entre les développeurs et les plates-formes.
+Un millier d'extraits de code jonchent les résultats d'une recherche
+sur le web, chacun clamant être la Seule Vraie Solution, toutes
+les autres étant de faux prophètes.
 
-It's embarrassing, really.
+C'est véritablement embarrassant.
 
-This week's article endeavors to provide a clear explanation of the various approaches to image resizing on iOS (and OS X, making the appropriate `UIImage` → `NSImage` conversions), using empirical evidence to offer insights into the performance characteristics of each approach, rather than simply prescribing any one way for all situations.
+L'article de cette semaine fera tout son possible pour fournir
+une explication claire des différentes approches au redimensionnement
+d'images sur iOS (et sur OS X, en faisant les conversions `UIImage` → `NSImage`
+appropriées), en apportant des preuves empiriques pour donner un aperçu 
+des performances de chaque approche, plutôt que de d'imposer une unique 
+manière peu importe les situations.
 
-**Before reading any further, please note the following:**
+**Avant de continuer la lecture, merci de prendre en compte ceci :**
 
-When setting a `UIImage` on a `UIImageView`, manual resizing is unnecessary for the vast majority of use cases. Instead, one can simply set the `contentMode` property to either `.ScaleAspectFit` to ensure that the entire image is visible within the frame of the image view, or `.ScaleAspectFill` to have the entire image view filled by the image, cropping as necessary from the center.
+Lorsque qu'une `UIImage` est affectée à une `UIImageView`, un redimensionnement
+manuel est inutile dans la vaste majorité des cas d'utilisation. À la place,
+il est possible de simplement définir la propriété `contentMode` à, soit
+`.ScaleAspectFit` pour s'assurer que l'image sera visible en entier dans la
+frame de l'image view, soit `.ScaleAspectFill` pour que l'image view soit
+entièrement remplie par l'image, en la rognant si nécessaire à partir de
+son centre.
 
 ```swift
 imageView.contentMode = .ScaleAspectFit
@@ -28,49 +48,60 @@ imageView.image = image
 
 ---
 
-## Determining Scaled Size
+## Déterminer la nouvelle taille
 
-Before doing any image resizing, one must first determine the target size to scale to.
+Avant de procéder à un redimensionnement, il faut tout d'abord déterminer
+quelle doit être la nouvelle taille.
 
-### Scaling by Factor
+### Redimensionner par coefficient
 
-The simplest way to scale an image is by a constant factor. Generally, this involves dividing by a whole number to reduce the original size (rather than multiplying by a whole number to magnify).
+La manière la plus simple de réduire une image est par un coefficient
+constant. Généralement, cela implique de diviser par un nombre entier la taille
+originale (plutôt que de la multiplier par un tel nombre pour l'agrandir).
 
-A new `CGSize` can be computed by scaling the width and height components individually:
+Une nouvelle `CGSize` peut être calculée en multipliant les composantes
+de longueur et hauteur individuellement :
 
 ```swift
 let size = CGSize(width: image.size.width / 2, height: image.size.height / 2)
 ```
 
-...or by applying a `CGAffineTransform`:
+...ou en appliquant une `CGAffineTransform` :
 
 ```swift
 let size = CGSizeApplyAffineTransform(image.size, CGAffineTransformMakeScale(0.5, 0.5))
 ```
 
-### Scaling by Aspect Ratio
+### Redimensionner par ratio d'image
 
-It's often useful to scale the original size in such a way that fits within a rectangle without changing the original aspect ratio. `AVMakeRectWithAspectRatioInsideRect` is a useful function found in the AVFoundation framework that takes care of that calculation for you:
+Il est souvent utile de réduire la taille originale de telle manière qu'elle
+s'adapte à un rectangle donné, sans modifier le ratio original de l'image.
+`AVMakeRectWithAspectRatioInsideRect` est une fonction utile du framework
+AVFoundation qui s'occupe de faire ce calcul à notre place :
 
 ```swift
 import AVFoundation
 let rect = AVMakeRectWithAspectRatioInsideRect(image.size, imageView.bounds)
 ```
 
-## Resizing Images
+## Redimensionner des images
 
-There are a number of different approaches to resizing an image, each with different capabilities and performance characteristics.
+Il existe nombre de méthodes différentes pour redimensionner une image,
+chacune ayant des capacités et des performances propres.
 
 ### `UIGraphicsBeginImageContextWithOptions` & `UIImage -drawInRect:`
 
-The highest-level APIs for image resizing can be found in the UIKit framework. Given a `UIImage`, a temporary graphics context can be used to render a scaled version, using `UIGraphicsBeginImageContextWithOptions()` and `UIGraphicsGetImageFromCurrentImageContext()`:
+Les APIs de plus haut niveau pour redimensionner une image se trouvent dans le
+framework UIKit. À partir d'une `UIImage`, un contexte graphique temporaire
+peut être utilisé pour générer une version réduite, en utilisant
+`UIGraphicsBeginImageContextWithOptions()` et `UIGraphicsGetImageFromCurrentImageContext()` :
 
 ```swift
 let image = UIImage(contentsOfFile: self.URL.absoluteString!)
 
 let size = CGSizeApplyAffineTransform(image.size, CGAffineTransformMakeScale(0.5, 0.5))
 let hasAlpha = false
-let scale: CGFloat = 0.0 // Automatically use scale factor of main screen
+let scale: CGFloat = 0.0 // Utilise automatiquement le facteur d'agrandissement de l'écran principal
 
 UIGraphicsBeginImageContextWithOptions(size, !hasAlpha, scale)
 image.drawInRect(CGRect(origin: CGPointZero, size: size))
@@ -79,11 +110,20 @@ let scaledImage = UIGraphicsGetImageFromCurrentImageContext()
 UIGraphicsEndImageContext()
 ```
 
-`UIGraphicsBeginImageContextWithOptions()` creates a temporary rendering context into which the original is drawn. The first argument, `size`, is the target size of the scaled image. The second argument, `isOpaque` is used to determine whether an alpha channel is rendered. Setting this to `false` for images without transparency (i.e. an alpha channel) may result in an image with a pink hue. The third argument `scale` is the display scale factor. When set to `0.0`, the scale factor of the main screen is used, which for Retina displays is `2.0` or higher (`3.0` on the iPhone 6 Plus).
+`UIGraphicsBeginImageContextWithOptions()` crée un contexte temporaire dans lequel l'image originale est dessinée. Le premier paramètre `size`, est la taille de
+l'image redimensionnée. Le second paramètre `isOpaque` sert à indiquer si un canal
+alpha doit être rendu. Le définir à `false` pour les images sans transparence
+(c'est à dire, sans canal alpha) peut résulter en une image avec une teinte rosée.
+Le troisième paramètre `scale` est le facteur d'agrandissement de l'écran. Quand
+il vaut `0.0`, le facteur d'agrandissement de l'écran principal est utilisée, qui,
+pour des écrans rétina, vaut `2.0` ou plus (`3.0` sur l'iPhone 6 plus).
 
 ### `CGBitmapContextCreate` & `CGContextDrawImage`
 
-Core Graphics / Quartz 2D offers a lower-level set of APIs that allow for more advanced configuration. Given a `CGImage`, a temporary bitmap context is used to render the scaled image, using `CGBitmapContextCreate()` and `CGBitmapContextCreateImage()`:
+Core Graphics / Quartz 2D propose un ensemble d'APIs bas-niveau qui autorisent
+des configurations plus avancées. À partir d'une `CGImage`, un contexte bitmap
+temporaire est utilisé pour générer la version réduite de l'image, en utilisant
+`CGBitmapContextCreate()` et `CGBitmapContextCreateImage()` :
 
 ```swift
 let cgImage = UIImage(contentsOfFile: self.URL.absoluteString!).CGImage
@@ -104,13 +144,26 @@ CGContextDrawImage(context, CGRect(origin: CGPointZero, size: CGSize(width: CGFl
 let scaledImage = CGBitmapContextCreateImage(context).flatMap { UIImage(CGImage: $0) }
 ```
 
-`CGBitmapContextCreate` takes several arguments to construct a context with desired dimensions and amount of memory for each channel within a given colorspace. In the example, these values are fetched from the `CGImage`. Next, `CGContextSetInterpolationQuality` allows for the context to interpolate pixels at various levels of fidelity. In this case, `kCGInterpolationHigh` is passed for best results. `CGContextDrawImage` allows for the image to be drawn at a given size and position, allowing for the image to be cropped on a particular edge or to fit a set of image features, such as faces. Finally, `CGBitmapContextCreateImage` creates a `CGImage` from the context.
+`CGBitmapContextCreate` prend plusieurs paramètres pour construire un contexte
+ayant les dimensions et la quantité de mémoire par canal d'un espace de couleur souhaitées. Dans cet exemple, ces valeurs sont obtenues depuis la `CGImage`. Ensuite,
+`CGContextSetInterpolationQuality` permet au contexte d'interpoler les pixels à
+différent niveaux de fidélités. Dans le cas présent, `kCGInterpolationHigh` est
+passé pour obtenir les meilleurs résultats. `CGContextDrawImage` permet à l'image
+d'être dessinées à une taille et position données, autorisant l'image a être rognée
+à partir d'un de ses bords ou en fonction de son contenu, tel que des visages.
+Finalement, `CGBitmapContextCreateImage` crée une `CGImage` à partir de ce contexte.
 
 ### `CGImageSourceCreateThumbnailAtIndex`
 
-Image I/O is a powerful, yet lesser-known framework for working with images. Independent of Core Graphics, it can read and write between many different formats, access photo metadata, and perform common image processing operations. The framework offers the fastest image encoders and decoders on the platform, with advanced caching mechanisms and even the ability to load images incrementally.
+Image I/O est un puissant, bien que méconnu, framework pour travailler sur des images.
+Indépendant de Core Graphics, il peut lire et écrire de nombreux formats 
+différents, accéder aux métadonnées de photos, et réaliser des opérations courantes
+de traitement d'images. Le framework fournit les encodeurs et décodeurs d'images
+les plus rapides de la plateforme, avec des mécanismes avancés de cache, et même
+la capacité de charger des images incrémentalement .
 
-`CGImageSourceCreateThumbnailAtIndex` offers a concise API with different options than found in equivalent Core Graphics calls:
+`CGImageSourceCreateThumbnailAtIndex` expose une API concise avec des options
+différentes de celles des appels Core Graphics équivalents :
 
 ```swift
 import ImageIO
@@ -125,13 +178,27 @@ if let imageSource = CGImageSourceCreateWithURL(self.URL, nil) {
 }
 ```
 
-Given a `CGImageSource` and set of options, `CGImageSourceCreateThumbnailAtIndex` creates a thumbnail image. Resizing is accomplished by the `kCGImageSourceThumbnailMaxPixelSize`. Specifying the maximum dimension divided by a constant factor scales the image while maintaining the original aspect ratio. By specifying either `kCGImageSourceCreateThumbnailFromImageIfAbsent` or `kCGImageSourceCreateThumbnailFromImageAlways`, Image I/O will automatically cache the scaled result for subsequent calls.
+À partir d'une `CGImageSource` et d'un ensemble d'options,
+`CGImageSourceCreateThumbnailAtIndex` crée une image miniature.
+Le redimensionnement est accompli par `kCGImageSourceThumbnailMaxPixelSize`.
+Spécifiez la dimension maximum divisée par un facteur constant réduit
+l'image tout en conservant le ratio d'image original. En spécifiant
+`kCGImageSourceCreateThumbnailFromImageIfAbsent` ou
+`kCGImageSourceCreateThumbnailFromImageAlways`, Image I/O va automatiquement
+mettre en cache les résultats pour de futurs appels.
 
-### Lanczos Resampling with Core Image
 
-Core Image provides a built-in [Lanczos resampling](https://en.wikipedia.org/wiki/Lanczos_resampling) functionality with the `CILanczosScaleTransform` filter. Although arguably a higher-level API than UIKit, the pervasive use of key-value coding in Core Image makes it unwieldy.
+### Ré-échantillonnage de Lanczos avec Core Image
 
-That said, at least the pattern is consistent. The process of creating a transform filter, configuring it, and rendering an output image is just like any other Core Image workflow:
+Core Image fournit une fonctionnalité pré-intégrée de
+[ré-échantillonnage de Lanczos](https://en.wikipedia.org/wiki/Lanczos_resampling)
+avec le filtre `CILanczosScaleTransform`. Bien qu'étant possiblement une
+API de plus haut niveau que UIKit, l'usage envahissant de key-value coding
+dans Core Image le rend peu agréable à utiliser.
+
+Ceci dit, son utilisation est au moins cohérente. Le processus de création d'un
+filtre, sa configuration, et la génération de l'image finale se déroule comme
+n'importe quel autre flux de travail de Core Image :
 
 ```swift
 let image = CIImage(contentsOfURL: self.URL)
@@ -146,18 +213,30 @@ let context = CIContext(options: [kCIContextUseSoftwareRenderer: false])
 let scaledImage = UIImage(CGImage: self.context.createCGImage(outputImage, fromRect: outputImage.extent()))
 ```
 
-`CILanczosScaleTransform` accepts an `inputImage`, `inputScale`, and `inputAspectRatio`, all of which are pretty self-explanatory. A `CIContext` is used to create a `UIImage` by way of a `CGImageRef` intermediary representation, since `UIImage(CIImage:)` doesn't often work as expected.
+`CILanczosScaleTransform` prend en paramètres une `inputImage`, une `inputScale`
+et un `inputAspectRatio`, dont les noms sont assez explicites. Un `CIContext`
+est utilisé pour créer une `UIImage` par l'intermédiaire d'une `CGImageRef`,
+puisque `UIImage(CIImage:)` ne fonctionne souvent pas comme attendu.
 
-Creating a `CIContext` is an expensive operation, so a cached context should always be used for repeated resizing. A `CIContext` can be created using either the GPU or the CPU (much slower) for rendering—use the `kCIContextUseSoftwareRenderer` key in the options dictionary to specify which.
+Créer un `CIContext` est une opération couteuse, ainsi un contexte mis en cache
+devrait toujours être utilisé pour des redimensionnements répétés. Un `CIContext`
+peut être créé en utilisant soit le GPU, soit le CPU (qui est bien plus lent)
+pour les opérations de calcul - utilisez la clé `kCIContextUseSoftwareRenderer`
+dans le dictionnaire d'options pour indiquer lequel doit être utilisé.
 
-### `vImage` in Accelerate
 
-The [Accelerate framework](https://developer.apple.com/library/prerelease/ios/documentation/Accelerate/Reference/AccelerateFWRef/index.html#//apple_ref/doc/uid/TP40009465) includes a suite of `vImage` image-processing functions, with a [set of functions](https://developer.apple.com/library/prerelease/ios/documentation/Performance/Reference/vImage_geometric/index.html#//apple_ref/doc/uid/TP40005490-CH212-145717) that scale an image buffer. These lower-level APIs promise high performance with low power consumption, but at the cost of managing the buffers yourself. The following is a Swift version of a method [suggested by Nyx0uf on GitHub](https://gist.github.com/Nyx0uf/217d97f81f4889f4445a):
+### `vImage` dans Accelerate
+
+Le [framework Accelerate](https://developer.apple.com/library/prerelease/ios/documentation/Accelerate/Reference/AccelerateFWRef/index.html#//apple_ref/doc/uid/TP40009465) inclu une série de fonctions `vImage` de traitements d'images, avec
+un [ensemble de fonctions](https://developer.apple.com/library/prerelease/ios/documentation/Performance/Reference/vImage_geometric/index.html#//apple_ref/doc/uid/TP40005490-CH212-145717) capables de mettre à l'échelle un buffer d'image. Ces
+APIs de bas-niveau promettent des performances élevées pour une consommation
+électrique minimale, mais au prix d'une gestion manuelle des buffers. Le code
+ci-dessous est une version Swift d'une méthode [suggérée par Nyx0uf sur GitHub](https://gist.github.com/Nyx0uf/217d97f81f4889f4445a) :
 
 ```swift
 let cgImage = UIImage(contentsOfFile: self.URL.absoluteString!).CGImage
 
-// create a source buffer
+// création d'un buffer source
 var format = vImage_CGImageFormat(bitsPerComponent: 8, bitsPerPixel: 32, colorSpace: nil,
     bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.First.rawValue),
     version: 0, decode: nil, renderingIntent: CGColorRenderingIntent.RenderingIntentDefault)
@@ -169,7 +248,7 @@ defer {
 var error = vImageBuffer_InitWithCGImage(&sourceBuffer, &format, nil, cgImage, numericCast(kvImageNoFlags))
 guard error == kvImageNoError else { return nil }
 
-// create a destination buffer
+// création d'un buffer de destination
 let scale = UIScreen.mainScreen().scale
 let destWidth = Int(image.size.width * 0.5 * scale)
 let destHeight = Int(image.size.height * 0.5 * scale)
@@ -181,31 +260,37 @@ defer {
 }
 var destBuffer = vImage_Buffer(data: destData, height: vImagePixelCount(destHeight), width: vImagePixelCount(destWidth), rowBytes: destBytesPerRow)
 
-// scale the image
+// mise à l'échelle de l'image
 error = vImageScale_ARGB8888(&sourceBuffer, &destBuffer, nil, numericCast(kvImageHighQualityResampling))
 guard error == kvImageNoError else { return nil }
 
-// create a CGImage from vImage_Buffer
+// création d'une CGImage depuis un vImage_Buffer
 let destCGImage = vImageCreateCGImageFromBuffer(&destBuffer, &format, nil, nil, numericCast(kvImageNoFlags), &error)?.takeRetainedValue()
 guard error == kvImageNoError else { return nil }
 
-// create a UIImage
+// création d'une UIImage
 let scaledImage = destCGImage.flatMap { UIImage(CGImage: $0, scale: 0.0, orientation: image.imageOrientation) }
 ```
 
-The Accelerate APIs used here clearly operate at a lower-level than the other resizing methods. To use this method, you first create a source buffer from your CGImage using a `vImage_CGImageFormat` with `vImageBuffer_InitWithCGImage()`. The destination buffer is allocated at the desired image resolution, then `vImageScale_ARGB8888` does the actual work of resizing the image. Managing your own buffers when operating on images larger than your app's memory limit is left as an exercise for the reader.
+Les APIs d'Accelerate utilisées ici opèrent clairement à un plus bas niveau que
+d'autres méthodes de redimensionnement. Pour utiliser cette méthode, vous devez
+d'abord créer un buffer source depuis votre `CGImage` en utilisant un `vImage_CGImageFormat` via `vImageBuffer_InitWithCGImage()`. Le buffer de destination
+est alloué à partir de résolution d'image désirée, puis `vImageScale_ARGB8888`
+réalise le travail de redimensionnement de l'image. Gérer ses propres buffers
+lorsque l'on manipule des images plus grandes que la limite en mémoire de l'app
+est laissé en exercice pour le lecteur.
 
 ---
 
-## Performance Benchmarks
+## Analyse des performances
 
-So how do these various approaches stack up to one another?
+Alors comment ces différentes méthodes se comparent-elles les unes aux autres ?
 
-Here are the results of a set of [performance benchmarks](https://nshipster.com/benchmarking/) done on an iPhone 6 running iOS 8.4, via [this project](https://github.com/natecook1000/Image-Resizing):
+Voice les résultats d'un ensemble de [benchmarks de performances](https://nshipster.com/benchmarking/) réalisés sur un iPhone 6 exécutant iOS 8.4, via [ce projet](https://github.com/natecook1000/Image-Resizing) :
 
 ### JPEG
 
-Loading, scaling, and displaying a large, high-resolution (12000 ⨉ 12000 px 20 MB JPEG) source image from [NASA Visible Earth](http://visibleearth.nasa.gov/view.php?id=78314) at 1/10<sup>th</sup> the size:
+Charger, redimensionner, et afficher une image haute-résolution (12000 ⨉ 12000 px 20 Mo JPEG) depuis [une galerie de la NASA](http://visibleearth.nasa.gov/view.php?id=78314) à 1/10<sup>ème</sup> de sa taille :
 
 | Operation                    | Time _(sec)_ | σ   |
 | ---------------------------- | ------------ | --- |
@@ -217,7 +302,7 @@ Loading, scaling, and displaying a large, high-resolution (12000 ⨉ 12000 px 20
 
 ### PNG
 
-Loading, scaling, and displaying a reasonably large (1024 ⨉ 1024 px 1MB PNG) rendering of the [Postgres.app](http://postgresapp.com) Icon at 1/10<sup>th</sup> the size:
+Charger, redimensionner et afficher une image raisonnablement grande (1024 ⨉ 1024 px 1Mo PNG) affichant l'icône de [Postgres.app](http://postgresapp.com) à 1/10<sup>ème</sup> de sa taille :
 
 | Operation                    | Time _(sec)_ | σ   |
 | ---------------------------- | ------------ | --- |
@@ -227,17 +312,26 @@ Loading, scaling, and displaying a reasonably large (1024 ⨉ 1024 px 1MB PNG) r
 | `Core Image` <sup>5</sup>    | 0.053        | 68% |
 | `vImage`                     | 0.050        | 25% |
 
-<sup>1, 4</sup> Results were consistent across different values of `CGInterpolationQuality`, with negligible differences in performance benchmarks.
+<sup>1, 4</sup> Les résultats furent constants pour différentes valeurs de `CGInterpolationQuality`, avec des écarts de performances négligeables.
 
-<sup>3</sup> The size of the NASA Visible Earth image was larger than could be processed in a single pass on the device.
+<sup>3</sup> La taille de l'image de la NASA était supérieure à ce qui pouvait
+être traité en une seule passe par l'appareil.
 
-<sup>2, 5</sup> Setting `kCIContextUseSoftwareRenderer` to `true` on the options passed on `CIContext` creation yielded results an order of magnitude slower than base results.
+<sup>2, 5</sup> Définir `kCIContextUseSoftwareRenderer` à `true` dans les options
+passées à la création du `CIContext` a conduit des résultats un ordre de grandeur
+inférieurs à ceux de référence.
 
 ## Conclusions
 
-- **UIKit**, **Core Graphics**, and **Image I/O** all perform well for scaling operations on most images.
-- **Core Image** is outperformed for image scaling operations. In fact, it is specifically recommended in the [Performance Best Practices section of the Core Image Programming Guide](https://developer.apple.com/library/mac/documentation/graphicsimaging/Conceptual/CoreImaging/ci_performance/ci_performance.html#//apple_ref/doc/uid/TP30001185-CH10-SW1) to use Core Graphics or Image I/O functions to crop or downsample images beforehand.
-- For general image scaling without any additional functionality, **`UIGraphicsBeginImageContextWithOptions`** is probably the best option.
-- If image quality is a consideration, consider using **`CGBitmapContextCreate`** in combination with **`CGContextSetInterpolationQuality`**.
-- When scaling images with the intent purpose of displaying thumbnails, **`CGImageSourceCreateThumbnailAtIndex`** offers a compelling solution for both rendering and caching.
-- Unless you're already working with **`vImage`**, the extra work to use the low-level Accelerate framework for resizing doesn't pay off.
+- **UIKit**, **Core Graphics**, et **Image I/O** offrent tous de bonnes performances
+pour des opérations de redimensionnement sur la plupart des images.
+- **Core Image** est devancé pour les opérations de mise à l'échelle d'images. En fait,
+il est spécifiquement recommandé dans le document [Performance Best Practices section of the Core Image Programming Guide](https://developer.apple.com/library/mac/documentation/graphicsimaging/Conceptual/CoreImaging/ci_performance/ci_performance.html#//apple_ref/doc/uid/TP30001185-CH10-SW1) d'utiliser en amont les fonctions de Core Graphics ou Image I/O pour recadrer ou sous-échantillonner les images.
+- Pour un redimensionnement d'images sans besoin de fonctionnalités additionnelles,
+**`UIGraphicsBeginImageContextWithOptions`** est probablement la meilleure option.
+- Si la qualité d'image est importante, considérez l'utilisation de **`CGBitmapContextCreate`** en conjonction de **`CGContextSetInterpolationQuality`**.
+- Lorsque le redimensionnement se fait avec l'intention d'afficher des miniatures,
+**`CGImageSourceCreateThumbnailAtIndex`** propose une solution convaincante qui prend
+en charge à la fois la génération ainsi que la mise en cache.
+- À moins que vous ne soyez déjà entrain de manipuler des **`vImage`**, la charge de
+travail additionnelle pour utiliser le framework bas-niveau Accelerate n'est pas rentable.
