@@ -3,11 +3,13 @@ title: OptionSet
 author: Mattt
 category: Swift
 excerpt: >-
-  Objective-C uses the `NS_OPTIONS` macro
-  to define set of values that may be combined together.
-  Swift imports those types as structures 
-  conforming to the `OptionSet` protocol.
-  But could new language features in Swift provide a better option?
+  L'Objective-C utilise la macro `NS_OPTIONS`
+  pour définir des ensembles de valeurs qui
+  peuvent être combinées entre elles. Swift
+  importe ces types sous la forme de structures
+  implémentant le protocole `OptionSet`.
+  Mais les nouvelles fonctionnalités de Swift
+  permettraient-elles une meilleure alternative ?
 revisions:
   "2014-09-09": First Publication
   "2018-11-07": Updated for Swift 4.2
@@ -16,15 +18,17 @@ status:
   reviewed: November 7, 2018
 ---
 
-Objective-C uses the
+L'Objective-C utilise la macro
 [`NS_OPTIONS`](https://nshipster.com/ns_enum-ns_options/)
-macro to define <dfn>option</dfn> types,
-or sets of values that may be combined together.
-For example,
-values in the `UIViewAutoresizing` type in UIKit
-can be combined with the bitwise OR operator (`|`)
-and passed to the `autoresizingMask` property of a `UIView`
-to specify which margins and dimensions should automatically resize:
+pour définir des types d'<dfn>options</dfn>, c'est à dire
+des ensembles de valeurs qui peuvent être combinées en une
+seule.
+Par exemple, les valeurs du type `UIViewAutoresizing` de
+UIKit peuvent être combinées via l'opérateur OU binaire
+(`|`) et le résultat affecté à la propriété 
+`autoresizingMask` d'une `UIView`, pour spécifier quelles
+marges et dimensions doivent être automatiquement
+redimensionnées :
 
 ```objc
 typedef NS_OPTIONS(NSUInteger, UIViewAutoresizing) {
@@ -38,8 +42,9 @@ typedef NS_OPTIONS(NSUInteger, UIViewAutoresizing) {
 };
 ```
 
-Swift imports this and other types defined using the `NS_OPTIONS` macro
-as a structure that conforms to the `OptionSet` protocol.
+Swift importe ce type, ainsi que tous les autres types définis
+via la macro `NS_OPTIONS`, sous la forme d'une structure
+qui se conforme au protocole `OptionSet`.
 
 ```swift
 extension UIView {
@@ -57,77 +62,85 @@ extension UIView {
 ```
 
 {% info %}
-The renaming and nesting of imported types
-are the result of a separate mechanism.
+Le renommage et l'imbrication des types
+importés est le résultat d'un autre
+mécanisme.
 {% endinfo %}
 
-At the time `OptionSet` was introduced (and `RawOptionSetType` before it),
-this was the best encapsulation that the language could provide.
-Towards the end of this article,
-we'll demonstrate how to take advantage of
-language features added in Swift 4.2
-to improve upon `OptionSet`.
+À l'époque où `OptionSet` a été introduit (et, avant lui,
+`RawOptionSetType`), il s'agissait de la meilleure encapsulation
+que le langage pouvait fournir.
+Vers la fin de cet article, nous démontrerons qu'il est
+possible d'exploiter les fonctionnalités apportées par Swift 4.2
+pour améliorer `OptionSet`
 
-...but that's getting ahead of ourselves.
+...mais n'allons pas trop vite.
 
-This week on NSHipster,
-let's take a by-the-books look at using imported `OptionSet` types,
-and how you can create your own.
-After that, we'll offer a different option
-for setting options.
+Cette semaine sur NSHipster,
+faisons un tour d'horizon de l'utilisation des types `OptionSet`
+automatiquement importés et de comment nous pouvons créer les nôtres.
+Ensuite, nous proposerons une approche différente pour définir
+des configurations.
 
-## Working with Imported Option Set Types
+## Utiliser les Types `OptionSet` importés
 
-[According to the documentation](https://developer.apple.com/documentation/swift/optionset),
-there are over 300 types in Apple SDKs that conform to `OptionSet`,
-from `ARHitTestResult.ResultType` to `XMLNode.Options`.
+[Selon la documentation](https://developer.apple.com/documentation/swift/optionset),
+il existe plus de 300 types dans les SDKs d'Apple qui implémentent
+le protocole `OptionSet`, allant de `ARHitTestResult.ResultType` à `XMLNode.Options`.
 
-No matter which one you're working with,
-the way you use them is always the same:
+Peut importe celui que vous utilisez,
+la manière de procéder est toujours identique :
 
-To specify a single option,
-pass it directly
-(Swift can infer the type when setting a property
-so you can omit everything up to the leading dot):
+Pour spécifier une unique option, il suffit
+de la fournir directement (Swift est capable
+d'inférer le type lorsqu'une propriété est
+affectée, pas besoin, donc, de mentionner
+tout ce qui précède le dernier `.`) :
 
 ```swift
 view.autoresizingMask = .flexibleHeight
 ```
 
-`OptionSet` conforms to the
-[`SetAlgebra`](https://developer.apple.com/documentation/swift/setalgebra)
-protocol,
-so to you can specify multiple options with an array literal ---
-no bitwise operations required:
+`OptionSet` implémente le protocole [`SetAlgebra`](https://developer.apple.com/documentation/swift/setalgebra),
+il est donc possible de spécifier de multiples options
+via un tableau littéral --- aucune manipulation sur les
+bits n'est requise : 
 
 ```swift
 view.autoresizingMask = [.flexibleHeight, .flexibleWidth]
 ```
 
-To specify no options,
-pass an empty array literal (`[]`):
+Pour ne spécifier aucune option,
+il suffit de passer un tableau littéral vide (`[]`) :
 
 ```swift
-view.autoresizingMask = [] // no options
+view.autoresizingMask = [] // aucune option
 ```
 
-## Declaring Your Own Option Set Types
+## Déclarer son propre Type `OptionSet`
 
-You might consider creating your own option set type
-if you have a property that stores combinations from a closed set of values
-and you want that combination to be stored efficiently using a bitset.
+Vous pourriez envisager de créer votre propre type
+`OptionSet` si vous avez une propriété qui stocke
+une combinaison de valeurs issues d'un ensemble
+non-extensible, et que vous souhaitez que cette
+combinaison soit stockée efficacement, sous la
+forme d'un vecteur de bits.
 
-To do this,
-declare a new structure that adopts the `OptionSet` protocol
-with a required `rawValue` instance property
-and type properties for each of the values you wish to represent.
-The raw values of these are initialized with increasing powers of 2,
-which can be constructed using the left bitshift (`<<`) operation
-with incrementing right-hand side values.
-You can also specify named aliases for specific combinations of values.
+Pour cela,
+déclarez une nouvelle structure qui implémente le
+protocole `OptionSet` via la propriété d'instance
+`rawValue`, ainsi que des propriétés statiques
+pour chacunes des options que vous souhaitez représenter.
+Les valeurs brutes de celles-ci sont initialisées avec
+des puissances croissantes de 2, qui peuvent être
+construites en utilisant un décalage binaire à gauche
+(`<<`) dont le membre droit est incrémenté avec chaque
+nouvelle option.
+Vous pouvez également définir des alias pour des
+combinaisons spécifiques.
 
-For example,
-here's how you might represent topping options for a pizza:
+Par exemple, voici comment vous pourriez représenter
+les garnitures d'une pizza :
 
 ```swift
 struct Toppings: OptionSet {
@@ -149,7 +162,7 @@ struct Toppings: OptionSet {
 }
 ```
 
-Taken into a larger example for context:
+Ici utilisées dans un contexte plus concret :
 
 ```swift
 struct Pizza {
@@ -178,12 +191,13 @@ let dinner = Pizza(inchesInDiameter: 12,
                    toppings: [.greenPeppers, .pineapple])
 ```
 
-Another advantage of `OptionSet` conforming to `SetAlgebra` is that
-you can perform set operations like determining membership,
-inserting and removing elements,
-and forming unions and intersections.
-This makes it easy to, for example,
-determine whether the pizza toppings are vegetarian-friendly:
+Un autre bénéfice de la conformance d'`OptionSet` à `SetAlgebra`
+est que les opérations ensemblistes standards peuvent être
+utilisées pour déterminer une appartenance, ajouter ou
+supprimer des éléments, et calculer des unions ou des
+intersections.
+Cela permet, par exemple, de facilement
+déterminer quelles garnitures de pizza sont végétariennes :
 
 ```swift
 extension Pizza {
@@ -195,24 +209,25 @@ extension Pizza {
 dinner.isVegetarian // true
 ```
 
-## A Fresh Take on an Old Classic
+## Nouveau Regard sur un Vieux Classique
 
-Alright, now that you know how to use `OptionSet`,
-let's show you how not to use `OptionSet`.
+Très bien, maintenant que nous savons utiliser `OptionSet`,
+essayons de montrer comment ne pas utiliser `OptionSet`.
 
-As we mentioned before,
-new language features in Swift 4.2 make it possible
-to have our <del>cake</del> <ins>pizza pie</ins> and eat it too.
+Comme indiqué précédemment,
+les nouvelles fonctionnalités de Swift 4.2 permettent
+d'avoir <del>le beurre</del> <ins>la pizza</ins> et l'argent
+<del>du beurre</del> <ins>de la pizza</ins>.
 
-First, declare a new `Option` protocol
-that inherits `RawRepresentable`, `Hashable`, and `CaseIterable`.
+Premièrement, déclarez un nouveau protocole `Option`
+qui hérite de `RawRepresentable`, `Hashable`, et `CaseIterable`.
 
 ```Swift
 protocol Option: RawRepresentable, Hashable, CaseIterable {}
 ```
 
-Next, declare an enumeration with `String` raw values
-that adopts the `Option` protocol:
+Ensuite, déclarez une `enum` basée sur des `String`
+qui se conforme au protocole `Option` :
 
 ```swift
 enum Topping: String, Option {
@@ -221,17 +236,20 @@ enum Topping: String, Option {
 }
 ```
 
-Compare the structure declaration from before
-to the following enumeration.
-Much nicer, right?
-Just wait --- it gets even better.
+Comparons les déclarations de structures vues précédemment
+avec celle ci-dessus.
+Bien mieux, n'est-ce pas ?
+Et attendez --- ce n'est pas fini.
 
-Automatic synthesis of `Hashable` provides effortless usage with `Set`,
-which gets us halfway to the functionality of `OptionSet`.
-Using conditional conformance,
-we can create an extension for any `Set` whose element is a `Topping`
-and define our named topping combos.
-As a bonus, `CaseIterable` makes it easy to order a pizza with _"the works"_:
+L'implémentation automatique de `Hashable` permet une utilisation
+avec `Set` sans effort supplémentaire, ce qui nous amène
+à mi-chemin des fonctionnalités d'`OptionSet`.
+En utilisant la conformance conditionnelle,
+nous pouvons créer une extension pour n'importe quel `Set` dont
+les éléments sont des `Topping` et définir ainsi des combinaisons
+de garnitures.
+En bonus, `CaseIterable` permet de facilement représenter
+la combinaison de toutes les possibilités :
 
 ```swift
 extension Set where Element == Topping {
@@ -251,11 +269,12 @@ extension Set where Element == Topping {
 typealias Toppings = Set<Topping>
 ```
 
-And that's not all `CaseIterable` has up its sleeves;
-by enumerating over the `allCases` type property,
-we can automatically generate the bitset values for each case,
-which we can combine to produce the equivalent `rawValue`
-for any `Set` containing `Option` types:
+Et ce n'est pas le seul tour que `CaseIterable` a
+dans son sac ! En itérant sur la propriété statique
+`allCases`, nous pouvons générer le vecteur de bits
+propre à chaque cas, que nous pouvons ensuite combiner
+pour produire la `rawValue` associée à n'importe quel
+`Set` contenant des `Option` :
 
 ```swift
 extension Set where Element: Option {
@@ -272,26 +291,26 @@ extension Set where Element: Option {
 }
 ```
 
-Because `OptionSet` and `Set` both conform to `SetAlgebra`
-our new `Topping` implementation can be swapped in for the original one
-without needing to change anything about the `Pizza` itself.
+Puisque `OptionSet` et `Set` implémentent tous deux
+`SetAlgebra`, notre nouvelle implémentation de `Topping`
+peut-être substituée à la précédente sans avoir besoin de
+modifier quoique que ce soit dans le type `Pizza`.
 
 {% warning %}
-This approach assumes that the order of cases provided by `CaseIterable`
-is stable across launches.
-If it isn't, the generated raw value for combinations of options
-may be inconsistent.
+Cette approche suppose que l'ordre de déclaration dans
+lequel `CaseIterable` fournit les différents cas reste
+le même d'une exécution à l'autre.
+Si ce n'est pas le cas, la `rawValue` calculée à partir
+d'une combinaison d'options risque d'être incohérente.
 {% endwarning %}
 
 ---
 
-So, to summarize:
-you're likely to encounter `OptionSet`
-when working with Apple SDKs in Swift.
-And although you _could_ create your own structure that conforms to `OptionSet`,
-you probably don't need to.
-You could use the fancy approach outlined at the end of this article,
-or do with something more straightforward.
-
-Whichever option you choose,
-you should be all set.
+Alors, pour résumer :
+vous avez de grandes chances de croiser la route d'`OptionSet`
+lorsque vous utilisez les SDKs d'Apple en Swift.
+Et bien que vous _puissiez_ créer vos propres structures
+qui implémentent `OptionSet`, cela n'est probablement pas
+nécessaire.
+Vous pouvez utiliser l'astucieuse méthode décrite à la fin
+de cet article ou bien vous satisfaire de l'approche standard.
