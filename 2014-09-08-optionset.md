@@ -20,8 +20,8 @@ status:
 
 L'Objective-C utilise la macro
 [`NS_OPTIONS`](https://nshipster.com/ns_enum-ns_options/)
-pour des types d'<dfn>options</dfn>, c'est à dire
-des ensembles de valeurs qui peuvent être combinés en une
+pour définir des types d'<dfn>options</dfn>, c'est à dire
+des ensembles de valeurs qui peuvent être combinées en une
 seule.
 Par exemple, les valeurs du type `UIViewAutoresizing` de
 UIKit peuvent être combinées via l'opérateur OU binaire
@@ -42,7 +42,7 @@ typedef NS_OPTIONS(NSUInteger, UIViewAutoresizing) {
 };
 ```
 
-Swift importe ce type, ainsi que tous autres types définis
+Swift importe ce type, ainsi que tous les autres types définis
 via la macro `NS_OPTIONS`, sous la forme d'une structure
 qui se conforme au protocole `OptionSet`.
 
@@ -69,7 +69,7 @@ mécanisme.
 
 À l'époque où `OptionSet` a été introduit (et, avant lui,
 `RawOptionSetType`), il s'agissait de la meilleure encapsulation
-que le langage pouvait mettre à disposition.
+que le langage pouvait fournir.
 Vers la fin de cet article, nous démontrerons qu'il est
 possible d'exploiter les fonctionnalités apportées par Swift 4.2
 pour améliorer `OptionSet`
@@ -79,7 +79,7 @@ pour améliorer `OptionSet`
 Cette semaine sur NSHipster,
 faisons un tour d'horizon de l'utilisation des types `OptionSet`
 automatiquement importés et de comment nous pouvons créer les nôtres.
-Ensuite, nous proposerons une manière différente de définir
+Ensuite, nous proposerons une approche différente pour définir
 des configurations.
 
 ## Utiliser les Types `OptionSet` importés
@@ -134,7 +134,7 @@ pour chacunes des options que vous souhaitez représenter.
 Les valeurs brutes de celles-ci sont initialisées avec
 des puissances croissantes de 2, qui peuvent être
 construites en utilisant un décalage binaire à gauche
-(`<<`) dont le terme de droite est incrémenté à chaque
+(`<<`) dont le membre droit est incrémenté avec chaque
 nouvelle option.
 Vous pouvez également définir des alias pour des
 combinaisons spécifiques.
@@ -272,7 +272,7 @@ typealias Toppings = Set<Topping>
 Et ce n'est pas le seul tour que `CaseIterable` a
 dans son sac ! En itérant sur la propriété statique
 `allCases`, nous pouvons générer le vecteur de bits
-pour caque cas, que nous pouvons ensuite combiner
+propre à chaque cas, que nous pouvons ensuite combiner
 pour produire la `rawValue` associée à n'importe quel
 `Set` contenant des `Option` :
 
@@ -312,5 +312,5 @@ lorsque vous utilisez les SDKs d'Apple en Swift.
 Et bien que vous _puissiez_ créer vos propres structures
 qui implémentent `OptionSet`, cela n'est probablement pas
 nécessaire.
-Vous pouvez utiliser l'astucieuse approche décrite à la fin
-de cet article ou bien avoir recours à une approche plus directe.
+Vous pouvez utiliser l'astucieuse méthode décrite à la fin
+de cet article ou bien vous satisfaire de l'approche standard.
