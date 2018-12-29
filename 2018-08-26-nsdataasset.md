@@ -8,10 +8,10 @@ excerpt: >
   compression et streaming,
   mise en cache et pré-chargement,
   partage et multiplexages de connexions,
-  exécution retardées ou en arrière-plan.
+  exécution différée ou en arrière-plan.
   Et pourtant, il existe une stratégie d'optimisation
   qui les précède et surpasse toutes :
-  _ne pas faire la requête du tout_.
+  _ne simplement pas faire la requête._
 status:
   swift: 4.2
 ---
@@ -24,7 +24,7 @@ Des études récentes suggèrent que _toute_ latence
 perceptible dans la durée de chargement d'une page ---
 c'est à dire, supérieure à 400 millisecondes (littéralement
 la durée d'un clignement d'oeil) ---
-peut négativement impacter les taux de conversions et
+peut négativement impacter les taux de conversion et
 d'engagement.
 Pour chaque seconde supplémentaire qu'une page web prend
 pour se charger, il faut s'attendre à ce que 10% des
@@ -42,10 +42,10 @@ requête réseau :
 compression et streaming,
 mise en cache et pré-chargement,
 partage et multiplexage des connexions,
-exécution retardée ou en arrière-plan.
+exécution différée ou en arrière-plan.
 Et pourtant, il existe une stratégie d'optimisation
 qui les précède et surpasse toutes :
-_ne pas faire la requête du tout_.
+_ne simplement pas faire la requête._
 
 Les applications mobiles, par le fait qu'elles sont téléchargées
 en amont de leur utilisation, possèdent un avantage unique
@@ -57,7 +57,7 @@ utilisateur au premier lancement de votre app.
 
 ---
 
-Les Asset Catalogs vous permettent de stocker et organiser des 
+Les Asset Catalogs vous permettent de stocker et d'organiser des 
 ressources en fonction des caractéristiques de l'appareil courant.
 Pour une même image,
 vous pouvez fournir différents fichiers, en fonction de l'appareil
@@ -76,8 +76,8 @@ qui résulte en des installations plus petites, qui sont optimisées pour
 l'appareil de chaque utilisateur.
 
 Les images sont de très loin le type de ressources le plus courant,
-mais depuis iOS 9 et macOS El Capitan, des fichiers comme
-JSON, XML et autres types données peuvent se joindre à l'aventure
+mais depuis iOS 9 et macOS El Capitan, des fichiers
+JSON, XML et d'autres types données peuvent se joindre à l'aventure
 par l'intermédiaire d'un [`NSDataAsset`](https://developer.apple.com/documentation/uikit/nsdataasset).
 
 ## Stocker et récupérer des données dans un Asset Catalog
@@ -89,7 +89,7 @@ Pour différencier différents niveaux de gris,
 nous pourrions charger une liste de couleurs et les noms qui leur sont
 associés. Normalement, nous pourrions la télécharger depuis un serveur lors
 du premier lancement, mais cela pourrait résulter en une mauvaise expérience
-utilisateur si [des configuration réseau défavorables](https://nshipster.com/network-link-conditioner/) bloquent les fonctionnalités de l'app.
+utilisateur si [des conditions réseau défavorables](https://nshipster.com/network-link-conditioner/) bloquent les fonctionnalités de l'app.
 Puisqu'il s'agit d'un jeu de données relativement statique,
 pourquoi ne pas l'inclure directement dans le contenu même de l'app
 via un Asset Catalog ?
@@ -125,7 +125,7 @@ glissez-déposer sur votre Data Set dans Xcode.
 
 {% asset asset-catalog-any-any-universal.png %}
 
-Une fois ceci fait,
+Quand vous faites ceci,
 Xcode va copier le fichier dans le sous-répertoire `.dataset`
 et mettre à jour le fichier de métadonnées `contents.json`
 avec le nom du fichier et son [Universal Type Identifier](https://en.wikipedia.org/wiki/Uniform_Type_Identifier).
@@ -174,7 +174,7 @@ self.colors = try! decoder.decode([NamedColor].self, from: asset.data)
 Les jeux de données ne bénéficient habituellement pas du mécanisme de
 d'app allégées que permettent les Asset Catalogs (la plupart des
 fichiers JSON, par exemple, ne dépendent absolument pas de quelle
-version de métal est supportée par un appareil).
+version de Metal est supportée par un appareil).
 
 Mais pour notre app de palettes de couleurs,
 nous pourrions proposer différentes listes de couleurs sur les appareils
@@ -252,7 +252,7 @@ $CURL -fsSL -o $OUTPUT $URL
 
 Bien que les Asset Catalogs réalisent une compression sans perte
 des images, rien dans la documentation, l'aide d'Xcode ou les sessions
-WWDC n'indique que de telles optimisations sont réalisées pour les données
+WWDC n'indique que de telles optimisations sont réalisées pour les fichiers de données
 (ou du moins pas pour le moment).
 
 Pour des jeux de données plus lourds que, disons, quelque centaines de
