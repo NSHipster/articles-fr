@@ -3,129 +3,132 @@ title: NSDataAsset
 author: Mattt
 category: Cocoa
 excerpt: >
-  There are many ways to speed up a network request:
-  compressing and streaming,
-  caching and prefetching,
-  reducing and inlining,
-  connection pooling and multiplexing,
-  deferring and backgrounding.
-  And yet there's one optimization strategy
-  that both predates and outperforms them all:
-  _not making the request in the first place_.
+  Il existe de nombreuses techniques pour accélérer une
+  requête réseau :
+  compression et streaming,
+  mise en cache et pré-chargement,
+  partage et multiplexages de connexions,
+  exécution différée ou en arrière-plan.
+  Et pourtant, il existe une stratégie d'optimisation
+  qui les précède et surpasse toutes :
+  _ne simplement pas faire la requête._
 status:
   swift: 4.2
 ---
 
-On the web,
-speed isn't a luxury;
-it's a matter of survival.
+Sur le web,
+la vitesse n'est pas un luxe,
+c'est une affaire de survie.
 
-User studies in recent years
-suggest that _any_ perceivable latency in page load time ---
-that is, greater than 400 milliseconds
-(literally in the blink of an eye) ---
-can negatively impact conversion and engagement rates.
-For every additional second that a webpage takes to load,
-one should expect 10% of users to swipe back or close the tab.
+Des études récentes suggèrent que _toute_ latence
+perceptible dans la durée de chargement d'une page ---
+c'est à dire, supérieure à 400 millisecondes (littéralement
+la durée d'un clignement d'oeil) ---
+peut négativement impacter les taux de conversion et
+d'engagement.
+Pour chaque seconde supplémentaire qu'une page web prend
+pour se charger, il faut s'attendre à ce que 10% des
+utilisateurs reviennent en arrière ou ferment l'onglet.
 
-For large internet companies like Google, Amazon, and Netflix,
-an extra second here and there
-can mean _billions_ of dollars in annual revenue.
-So it's no surprise those very same companies
-have committed so much engineering effort into making the web fast.
+Pour des grandes entreprises du web comme Google, Amazon et
+Netflix, une seconde de plus ici ou là peut représenter
+des _milliards_ de dollars de recettes annuelles.
+Il n'est donc pas surprenant que ces mêmes entreprises
+aient mis en oeuvre tant d'efforts d'ingénierie
+pour rendre le web plus rapide.
 
-There are many techniques for speeding up a network request:
-compressing and streaming,
-caching and prefetching,
-connection pooling and multiplexing,
-deferring and backgrounding.
-And yet there's one optimization strategy
-that both predates and outperforms them all:
-_not making the request in the first place_.
+Il existe de nombreuses techniques pour accélérer une
+requête réseau :
+compression et streaming,
+mise en cache et pré-chargement,
+partage et multiplexage des connexions,
+exécution différée ou en arrière-plan.
+Et pourtant, il existe une stratégie d'optimisation
+qui les précède et surpasse toutes :
+_ne simplement pas faire la requête._
 
-Apps, by virtue of being downloaded ahead of time,
-have a unique advantage over conventional web pages in this respect.
-This week on NSHipster,
-we'll show how to leverage the Asset Catalog in an unconventional way
-to improve the first launch experience for your app.
+Les applications mobiles, par le fait qu'elles sont téléchargées
+en amont de leur utilisation, possèdent un avantage unique
+par rapport aux pages web classiques.
+Cette semaine sur NSHipster,
+nous allons montrer comment un Asset Catalog peut être utilisé
+de manière non-conventionnelle, dans le but d'améliorer l'expérience
+utilisateur au premier lancement de votre app.
 
 ---
 
-Asset Catalogs allow you to organize resources
-according to the characteristics of the current device.
-For a given image,
-you can provide different files depending on the
-device (iPhone, iPad, Apple Watch, Apple TV, Mac),
-screen resolution (`@2x` / `@3x`), or
-color gamut (sRGB / P3).
-For other kinds of assets,
-you might offer variations depending on the available memory
-or version of Metal.
-Just request an asset by name,
-and the most appropriate one is provided automatically.
+Les Asset Catalogs vous permettent de stocker et d'organiser des 
+ressources en fonction des caractéristiques de l'appareil courant.
+Pour une même image,
+vous pouvez fournir différents fichiers, en fonction de l'appareil
+(iPhone, iPad, Apple Watch, Apple TV, Mac), la résolution d'écran
+(`@2x` / `@3x`), ou l'espace colorimétrique (sRGB / P3).
+Pour d'autres types de ressources,
+vous pouvez offrir des alternatives en fonction de la quantité
+de mémoire disponible ou de la version de Metal supportée.
+Il n'y a besoin que de demander une ressource par son nom,
+et sa version la plus appropriée sera automatiquement fournie.
 
-Beyond offering a more convenient API,
-Asset Catalogs let apps take advantage of
-[app thinning](https://help.apple.com/xcode/mac/current/#/devbbdc5ce4f),
-resulting in smaller installations that are optimized for each user's device.
+Au delà de proposer API pratique à utiliser,
+les Asset Catalogs permettent aux apps d'exploiter le mécanisme
+d'[apps allégées](https://help.apple.com/xcode/mac/current/#/devbbdc5ce4f),
+qui résulte en des installations plus petites, qui sont optimisées pour
+l'appareil de chaque utilisateur.
 
-Images are far and away the most common types of assets,
-but as of iOS 9 and macOS El Capitan,
-resources like JSON, XML and other data file can join in the fun by way of
-[`NSDataAsset`](https://developer.apple.com/documentation/uikit/nsdataasset).
+Les images sont de très loin le type de ressources le plus courant,
+mais depuis iOS 9 et macOS El Capitan, des fichiers
+JSON, XML et d'autres types données peuvent se joindre à l'aventure
+par l'intermédiaire d'un [`NSDataAsset`](https://developer.apple.com/documentation/uikit/nsdataasset).
 
-## How to Store and Retrieve Data with Asset Catalog
+## Stocker et récupérer des données dans un Asset Catalog
 
-As an example,
-let's imagine an iOS app for creating digital color palettes.
+À titre d'exemple,
+imaginons une app iOS permettant de créer des palettes numériques de couleurs.
 
-To distinguish between different shades of gray,
-we might load a list of colors and their corresponding names.
-Normally, we might download this from a server on first launch,
-but that could cause a bad user experience if
-[adverse networking conditions](https://nshipster.com/network-link-conditioner/)
-block app functionality.
-Since this is a relatively static data set,
-why not include the data in the app bundle itself
-by way of an Asset Catalog?
+Pour différencier différents niveaux de gris,
+nous pourrions charger une liste de couleurs et les noms qui leur sont
+associés. Normalement, nous pourrions la télécharger depuis un serveur lors
+du premier lancement, mais cela pourrait résulter en une mauvaise expérience
+utilisateur si [des conditions réseau défavorables](https://nshipster.com/network-link-conditioner/) bloquent les fonctionnalités de l'app.
+Puisqu'il s'agit d'un jeu de données relativement statique,
+pourquoi ne pas l'inclure directement dans le contenu même de l'app
+via un Asset Catalog ?
 
-### Step 1. Add New Data Set to Asset Catalog
+### Étape 1. Ajouter un nouveau Data Set à un Asset Catalog
 
-When you create a new app project in Xcode,
-it automatically generates an Asset Catalog.
-Select `Assets.xcassets` from the project navigator
-to open the Asset Catalog editor.
-Click the <kbd>+</kbd> icon at the bottom left
-and select "New Data Set"
+Lorsque vous créez un nouveau projet d'app dans Xcode,
+un Asset Catalog est automatiquement généré.
+Sélectionnez `Assets.xcassets` dans le navigateur de projet
+pour ouvrir l'éditeur d'Asset Catalog.
+Cliquez sur l'icône <kbd>+</kbd> dans le coin inférieur gauche
+et sélectionnez "New Data Set"
 
 {% asset add-new-data-set.png %}
 
-Doing this creates a new subdirectory of `Assets.xcassets`
-with the `.dataset` extension.
+Cette action crée un nouveau sous-répertoire dans `Assets.xcassets`
+qui porte l'extension `.dataset`
 
 {% info do %}
 
-By default,
-the Finder treats both of these bundles as directories,
-which makes it easy to inspect and modify their contents as needed.
+Par défaut,
+le Finder considère ces deux paquets comme des répertoires,
+ce qui simplifie leur inspection et la modification de leurs contenus
+si nécessaire.
 
 {% endinfo %}
 
-### Step 2. Add a Data File
+### Étape 2. Ajouter un fichier de données
 
-Open the Finder,
-navigate to the data file
-and drag-and-drop it
-into the empty field for your data set asset in Xcode.
+Ouvrez le Finder,
+naviguez jusqu'au fichier de données et faites un
+glissez-déposer sur votre Data Set dans Xcode.
 
 {% asset asset-catalog-any-any-universal.png %}
 
-When you do this,
-Xcode copies the file to the the `.dataset` subdirectory
-and updates the `contents.json` metadata file
-with the filename and
-[Universal Type Identifier](https://en.wikipedia.org/wiki/Uniform_Type_Identifier).
-of the file.
+Quand vous faites ceci,
+Xcode va copier le fichier dans le sous-répertoire `.dataset`
+et mettre à jour le fichier de métadonnées `contents.json`
+avec le nom du fichier et son [Universal Type Identifier](https://en.wikipedia.org/wiki/Uniform_Type_Identifier).
 
 ```json
 {
@@ -143,10 +146,10 @@ of the file.
 }
 ```
 
-### Step 3. Access Data Using NSDataAsset
+### Étape 3. Accéder aux données via NSDataAsset
 
-Now you can access the file's data
-with the following code:
+Vous pouvez maintenant accéder au contenu du fichier avec
+le code suivant :
 
 ```swift
 guard let asset = NSDataAsset(name: "NamedColors") else {
@@ -156,33 +159,36 @@ guard let asset = NSDataAsset(name: "NamedColors") else {
 let data = asset.data
 ```
 
-In the case of our color app,
-we might call this from the `viewDidLoad()` method in a view controller
-and use the resulting data to decode an array of model objects
-to be displayed in a table view:
+Dans le cas de notre app,
+nous pourrions faire cet appel depuis la méthode `viewDidLoad()`
+d'un view controller et utiliser le résultat pour décoder un
+tableau d'objets qui seront affichés dans une table view :
 
 ```swift
 let decoder = JSONDecoder()
 self.colors = try! decoder.decode([NamedColor].self, from: asset.data)
 ```
 
-## Mixing It Up
+## Aller plus loin
 
-Data sets don't typically benefit from app thinning features of Asset Catalogs
-(most JSON files, for example,
-couldn't care less about what version of Metal is supported by the device).
+Les jeux de données ne bénéficient habituellement pas du mécanisme de
+d'app allégées que permettent les Asset Catalogs (la plupart des
+fichiers JSON, par exemple, ne dépendent absolument pas de quelle
+version de Metal est supportée par un appareil).
 
-But for our color palette app example,
-we might provide different color lists on devices with a wide-gamut display.
+Mais pour notre app de palettes de couleurs,
+nous pourrions proposer différentes listes de couleurs sur les appareils
+avec un espace colorimétrique étendu.
 
-To do this,
-select the asset in the sidebar of the Asset Catalog editor
-and click on the drop-down control labeled Gamut in the Attributes Inspector.
+Pour ce faire,
+sélectionnez la ressource dans la barre latérale de l'éditeur d'Asset Catalog
+et cliquez sur le menu déroulant intitulé "Gamut" dans l'inspecteur d'attributs.
 
 {% asset select-color-gamut.png %}
 
-After providing bespoke data files for each gamut,
-the `contents.json` metadata file should look something like this:
+Après avoir fourni les jeux de données appropriés pour chaque espace colorimétrique,
+le fichier de métadonnées `contents.json` devrait ressembler à quelque chose
+comme ça :
 
 ```json
 {
@@ -207,28 +213,31 @@ the `contents.json` metadata file should look something like this:
 }
 ```
 
-## Keeping It Fresh
+## Conserver des données fraîches
 
-Storing and retrieving data from the Asset Catalog is trivial.
-What's actually difficult --- and ultimately more important ---
-is keeping that data up-to-date.
+Stocker et récupérer des données depuis un Asset Catalog est
+trivial. Ce qui est réellement difficile --- et en fin de compte
+plus important --- est de garder ces données à jour.
 
-Refresh data using `curl`, `rsync`, `sftp`,
-Dropbox, BitTorrent, or Filecoin.
-Kick things off from a shell script
-(and call it in an Xcode Build Phase, if you like).
-Add it to your `Makefile`, `Rakefile`, `Fastfile`,
-or whatever is required of your build system of choice.
-Delegate the task to Jenkins or Travis or that bored-looking intern.
-Trigger it from a bespoke Slack integration
-or create a Siri Shortcut so you can wow your colleagues with a casual
-_"Hey Siri, update that data asset before it gets too stale"_.
+Rafraîchissez des données en utilisant `curl`, `rsync`, `sftp`,
+Dropbox, BitTorrent, ou Filecoin.
+Lancez le processus depuis un script Shell
+(et appelez le depuis un Xcode Build Phase,
+si vous voulez).
+Ajoutez-le à votre `Makefile`, `Rakefile`, `Fastfile`,
+ou tout autre système de compilation de votre choix.
+Déléguez la tâche à Jenkins, Travis ou à un stagiaire.
+Déclenchez le depuis une intégration Slack ou créez un
+raccourci Siri pour étonner vos collègues avec un 
+_"Dis Siri, mets à jour ce jeu de donnée avant qu'il ne pourrisse"_.
 
-**However you decide to synchronize your data,
-just make sure it's automated and part of your release process.**
+**Peu importe comment vous décidez de synchroniser vos données,
+l'important est que le mécanisme soit automatisé et fasse parti
+de votre processus de livraison.**
 
-Here's an example of a shell script you might run
-to download the latest data file using `curl`:
+Voici un exemple d'un script shell que vous pourriez
+utiliser pour télécharger la dernière version des données
+en utilisant `curl` :
 
 ```shell
 #!/bin/sh
@@ -239,19 +248,21 @@ OUTPUT='./Assets.xcassets/Colors.dataset/data.json'
 $CURL -fsSL -o $OUTPUT $URL
 ```
 
-## Wrapping It Up
+## Assemblons les morceaux
 
-Although the Assets Catalog performs lossless compression of image assets,
-nothing from the documentation, Xcode Help, or WWDC sessions  
-indicate that any such optimization is done for data assets (at least not yet).
+Bien que les Asset Catalogs réalisent une compression sans perte
+des images, rien dans la documentation, l'aide d'Xcode ou les sessions
+WWDC n'indique que de telles optimisations sont réalisées pour les fichiers de données
+(ou du moins pas pour le moment).
 
-For data assets larger than, say, a few hundred kilobytes,
-you should consider using compression.
-This is especially true for text files like JSON, CSV, and XML,
-which typically compress down to 60% — 80% of their original size.
+Pour des jeux de données plus lourds que, disons, quelque centaines de
+kilo-octets, vous devriez considérer l'utilisation d'une compression.
+Cela est particulièrement vrai pour des fichiers texte comme les JSON,
+CSV et XML, qui peuvent habituellement se compresser jusqu'à 60% - 80%
+de leur taille d'origine.
 
-We can add compression to our previous shell script
-by piping the output of `curl` to `gzip` before writing to our file:
+Nous pouvons ajouter une étape de compression au script précédent
+en redirigeant la sortie de `curl` vers `gzip` :
 
 ```shell
 #!/bin/sh
@@ -263,9 +274,9 @@ OUTPUT='./Assets.xcassets/Colors.dataset/data.json.gz'
 $CURL -fsSL $URL | $GZIP -c > $OUTPUT
 ```
 
-If you do adopt compression,
-make sure that the `"universal-type-identifier"` field
-reflects this:
+Si vous décidez d'utiliser cette compression,
+assurez-vous que le champ `"universal-type-identifier"`
+possède bien cette valeur :
 
 ```json
 {
@@ -283,9 +294,10 @@ reflects this:
 }
 ```
 
-On the client-side,
-it's up to you to decompress data from the asset catalog before use.
-If you had a `Gzip` module, you might do the following:
+Côté client,
+c'est à vous qu'il revient de décompresser les données récupérées
+de l'Asset Catalog avant de les utiliser.
+Si vous avez un module `Gzip`, vous pourriez faire comme suit :
 
 ```swift
 do {
@@ -295,8 +307,8 @@ do {
 }
 ```
 
-Or, if you do this multiple times in your app,
-you could create a convenience method in an extension to `NSDataAsset`:
+Ou, si vous faites cela à de multiples reprises dans votre app,
+vous pourriez créer une méthode dans une extension de `NSDataAsset` :
 
 ```swift
 extension NSDataAsset {
@@ -308,20 +320,22 @@ extension NSDataAsset {
 
 {% info do %}
 
-You might also consider managing large data asset files in version control
-using [Git Large File Storage (LFS)](https://git-lfs.github.com).
+Vous pourriez aussi considérer gérer de grands jeux de données
+dans votre contrôle de version en utilisant 
+[Git Large File Storage (LFS)](https://git-lfs.github.com).
 
 {% endinfo %}
 
 ---
 
-Although it's tempting to assume that all of your users
-enjoy fast, ubiquitous network access over WiFi and LTE,
-this isn't true for everyone,
-and certainly not all the time.
+Bien qu'il soit tentant de supposer que tous vos utilisateurs
+jouissent d'une connexion réseau rapide et fiable via WiFi ou 4G,
+cela n'est pas vrai pour tout le monde, et ce n'est certainement
+pas vrai tout le temps.
 
-Take a moment to see what networking calls your app makes at launch,
-and consider if any of these might benefit from being pre-loaded.
-Making a good first impression
-could mean the difference between a long-term active use
-and deletion after a few seconds.
+Prenez un moment pour regarder quels sont les appels réseau que
+votre app réalise à son lancement et demandez-vous si certains
+d'entre-eux pourraient gagner à être pré-chargés.
+Faire une bonne première impression peut être la différence entre
+une utilisation fidèle et assidue et une désinstallation au bout
+de quelques secondes.
