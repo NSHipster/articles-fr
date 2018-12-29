@@ -2,7 +2,7 @@
 title: Method Swizzling
 author: Mattt
 category: Objective-C
-excerpt: "Le swizzling de méthodes est le processus consistant à changer l'implémentation associée à un sélecteur existant. Cette technique est rendue possible par le fait qu'en Objective-C, l'invocation de méthodes puisse être modifiée à l'exécution, en modifiant la façon dont des sélecteurs sont associés à leurs fonctions sous-jacentes dans la table d'aiguillage d'une classe."
+excerpt: "Le swizzling de méthode est le processus consistant à changer l'implémentation associée à un sélecteur existant. Cette technique est rendue possible par le fait qu'en Objective-C, l'invocation de méthodes puisse être altérée à l'exécution, en modifiant la façon dont des sélecteurs sont associés à leurs fonctions sous-jacentes dans la table d'aiguillage d'une classe."
 status:
     swift: n/a
     reviewed: January 28, 2015
@@ -20,11 +20,11 @@ status:
 > With all your power ... What would you do?<br/>
 > <cite><strong>The Flaming Lips</strong>, <em><a href="https://en.wikipedia.org/wiki/The_Yeah_Yeah_Yeah_Song_(With_All_Your_Power)">"The Yeah Yeah Yeah Song (With All Your Power)"</a></em></cite>
 
-Dans l'article de la semaine précédente sur les [associated objects](https://nshipster.com/associated-objects/), nous avons commencé à explorer les arcanes de l'environnement d'exécution de l'Objective-C. Cette semaine, nous nous aventurons plus avant, pour discuter de ce qui est peut-être la plus controversée des astuces qui tirent parti de cet environnement : le swizzling de méthodes.
+Dans l'article de la semaine précédente sur les [associated objects](https://nshipster.com/associated-objects/), nous avons commencé à explorer les arcanes de l'environnement d'exécution de l'Objective-C. Cette semaine, nous nous aventurons plus avant, pour discuter de ce qui est peut-être la plus controversée des astuces qui tirent parti de cet environnement : le swizzling de méthode.
 
 * * *
 
-Le swizzling de méthodes est le processus consistant à changer l'implémentation associée à un sélecteur existant. Cette technique est rendue possible par le fait qu'en Objective-C, l'invocation de méthodes puisse être altérée à l'exécution, en modifiant la façon dont des sélecteurs sont associés à leurs fonctions sous-jacentes dans la table d'aiguillage d'une classe. 
+Le swizzling de méthode est le processus consistant à changer l'implémentation associée à un sélecteur existant. Cette technique est rendue possible par le fait qu'en Objective-C, l'invocation de méthodes puisse être altérée à l'exécution, en modifiant la façon dont des sélecteurs sont associés à leurs fonctions sous-jacentes dans la table d'aiguillage d'une classe. 
 
 Par exemple, disons que nous souhaitons savoir combien de fois chaque view controller d'une app iOS est présenté à l'utilisateur.
 
@@ -81,9 +81,9 @@ Fort heureusement, il existe une alternative : le swizzling de méthode depuis u
 @end
 ```
 
-> En informatique, le [swizzling de pointeur](https://en.wikipedia.org/wiki/Pointer_swizzling) est la conversion de références basées sur un nom ou une position vers de réels pointeurs. Bien que l'usage de ce terme dans le cadre de l'Objective-C ne soit pas complètement clair, il est aisé de comprendre pourquoi il est entré dans les moeurs, puisque le swizzling de méthode implique de remplacer un pointeur de fonction par son sélecteur.
+> En informatique, le [swizzling de pointeur](https://en.wikipedia.org/wiki/Pointer_swizzling) est la conversion de références basées sur un nom ou une position vers de réels pointeurs. Bien que l'usage de ce terme dans le cadre de l'Objective-C ne soit pas complètement clair, il est aisé de comprendre pourquoi il est entré dans les moeurs, puisque le swizzling de méthode implique de remplacer le pointeur de fonction associé à un sélecteur.
 
-Désormais, quand n'importe quelle instance de `UIViewController`, ou de ses sous-classes appellera `viewWillAppear:`, un message sera écrit à la console.
+Désormais, quand n'importe quelle instance de `UIViewController`, ou d'une de ses sous-classes appellera `viewWillAppear:`, un message sera écrit à la console.
 
 L'injection d'un comportement dans le cycle de vie d'un view controller, la remontée d'un évènement depuis l'UI, le dessin d'une vue ou la couche réseau de Foundation sont autant de bons exemples de comment le swizzling de méthodes peut être utilisé efficacement. Il existe de nombreuses occasions où le swizzling est une technique pertinente, et elles apparaitront d'autant plus clairement qu'un dévelopeur Objective-C sera expérimenté.
 
@@ -95,13 +95,13 @@ Peu importe _pourquoi_ ou _à quel endroit_ l'on choisit de mettre en oeuvre le 
 
 Il existe deux méthodes qui sont automatiquement appelées pour chaque classe par l'environnement d'exécution de l'Objective-C. `+load` est appelée lorsque la classe est initialement chargée, et `+initialize` juste avant que le premier appel de méthode sur cette classe ou une de ses instances ai lieu. L'implémentation de ces deux méthodes est facultative, et elles ne sont exécutées que si elles sont réellement présentes.
 
-Puisque le swizzling de méthodes modifie l'état global, il est important de minimiser la possibilité d'un accès concurrent entre différents threads. `+load` est garantie d'être appelée lors du chargement d'une classe, ce qui minimise les risque lors de la modification de l'état global. A l'inverse, `+initialize` ne fournie pas de telle garantie sur le moment de son appel — de fait, elle ne pourrait _jamais_ être appelée, si sa classe ne reçoit jamais de message de la part de l'app.
+Puisque le swizzling de méthode modifie l'état global, il est important de minimiser la possibilité d'un accès concurrent entre différents threads. `+load` est garantie d'être appelée lors du chargement d'une classe, ce qui minimise les risque lors de la modification de l'état global. A l'inverse, `+initialize` ne fournie pas de telle garantie sur le moment de son appel — de fait, elle pourrait ne _jamais_ être appelée, si sa classe ne reçoit jamais de message de la part de l'app.
 
 ## dispatch_once
 
 **Le swizzling devrait toujours avoir lieu dans un `dispatch_once`.**
 
-Une fois encore, puisque le swizzling modifie l'état global, nous nous devons de mettre en oeuvre toutes les précautions que permet l'environnement d'exécution. L'atomicité est une de ces précautions, car elle garantie que le code ne sera exécuté qu'une seule fois, même entre différents threads. La fonction `dispatch_once` de Grand Central Dispatch fournie ces garanties, et doit donc être considérée comme aussi indispensable lors d'un swizzling que lors de [l'initialisation d'un singleton](https://nshipster.com/c-storage-classes/).
+Une fois encore, puisque le swizzling modifie l'état global, nous nous devons de mettre en oeuvre toutes les précautions que permet l'environnement d'exécution. L'atomicité est une de ces précautions, car elle garantie que le code ne sera exécuté qu'une seule fois, même entre différents threads. La fonction `dispatch_once` de Grand Central Dispatch offre ces garanties, et doit donc être considérée comme aussi indispensable lors d'un swizzling que lors de [l'initialisation d'un singleton](https://nshipster.com/c-storage-classes/).
 
 ## Selectors, Methods, & Implementations
 
@@ -111,7 +111,7 @@ Voici la façon dont la [documentation d'Apple](https://developer.apple.com/libr
 
 > - Sélecteur ((`typedef struct objc_selector *SEL`) : les sélecteurs sont utilisés pour représenter le nom d'une méthode lors de l'exécution. Un sélecteur de méthode est une chaîne de caractères C qui a été enregistrée (ou associée) à l'environnement d'exécution Objective-C. Les sélecteurs générés par le compilateur sont automatiquement associés à l'environnement d'exécution lorsque la classe est chargée.
 > - Méthode (`typedef struct objc_method *Method `) : un type opaque représentant une méthode dans la définition d'une classe.
-> - Implémentation (`typedef id (*IMP)(id, SEL, ...)`) : ce type de données est un pointeur vers le début d'une fonction qui implémente la méthode. Cette fonction utilise la convention d'appel C standard de l'architecture processeur courante. Le premier paramètre est un pointeur vers self (c'est à dire, l'emplacement en mémoire de l'instance de la classe, ou, pour une méthode de classe, un pointeur vers l'object métaclasse). Le second paramètre est le sélecteur de la méthode. Suivent les arguments de la méthode.
+> - Implémentation (`typedef id (*IMP)(id, SEL, ...)`) : ce type de données est un pointeur vers le début d'une fonction qui implémente la méthode. Cette fonction utilise la convention d'appel C standard de l'architecture processeur courante. Le premier paramètre est un pointeur vers self (c'est à dire, l'emplacement en mémoire de l'instance de la classe, ou, pour une méthode de classe, un pointeur vers l'objet métaclasse). Le second paramètre est le sélecteur de la méthode. Suivent les arguments de la méthode.
 
 La meilleure façon de saisir le lien entre ces concepts est le suivant : une classe (`Class`) maintient une table d'aiguillage permettant de résoudre l'envoi de messages à l'exécution ; chaque entrée de cette table est une méthode (`Method`), avec pour valeur associée un sélecteur (`SEL`), vers une implémentation (`IMP`), qui est un pointeur vers la fonction C sous-jacente.
 
@@ -129,7 +129,7 @@ Il pourrait sembler que le code suivant résulte en une boucle infinie :
 }
 ```
 
-De façon surprenante, ce n'est pas le cas. Lors du processus de swizzling, `xxx_viewWillAppear:` a été réassigné à l'implémentation originale de `UIViewController -viewWillAppear:`. Il est tout à fait normal qu'appeler à nouveau une même méthode sur self dans sa propre implémentation soit perçu comme dangereux, cependant, dans ce cas, il est nécessaire de se rappeler ce qui est _réellement_ entrain d'avoir lieu. Cependant, si nous venions à appeler `viewWillAppear:` dans cette même méthode, cela produirait _effectivement_ une boucle infinie, puisque l'implémentation de cette méthode sera associée au sélecteur `viewWillAppear:` lors de l'exécution.
+De façon surprenante, ce n'est pas le cas. Lors du processus de swizzling, `xxx_viewWillAppear:` a été réassigné à l'implémentation originale de `UIViewController -viewWillAppear:`. Il est tout à fait normal qu'appeler à nouveau une même méthode sur self dans sa propre implémentation soit perçu comme dangereux, cependant, dans ce cas, il est nécessaire de se rappeler ce qui est _réellement_ entrain d'avoir lieu. Toutefois, si nous venions à appeler `viewWillAppear:` dans cette même méthode, cela produirait _effectivement_ une boucle infinie, puisque l'implémentation de cette méthode sera associée au sélecteur `viewWillAppear:` lors de l'exécution.
 
 > Rappelez-vous de préfixer les noms de vos méthodes swizzlées, de la même manière que vous le feriez pour tout autre méthode déclarée dans une catégorie.
 
