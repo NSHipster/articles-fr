@@ -6,11 +6,11 @@ authors:
     - Mattt
 category: Swift
 excerpt: >
-	Swift 2.0 a instauré deux nouvelles structures de contrôle
+	Swift 2.0 a instauré deux nouvelles structures de contrôle,
 	dont l'objectif est de simplifier et d'affiner les programmes
 	que nous écrivons.
-	Alors que le premier, par sa nature, rend notre code plus
-	linéaire, le second permet l'inverse, en retardant
+	Alors que la première, par sa nature, rend notre code plus
+	linéaire, la seconde permet l'inverse, en retardant
 	l'exécution de son contenu.
 revisions:
     "2015-10-05": First Publication
@@ -20,11 +20,11 @@ status:
     reviewed: August 1, 2018
 ---
 
-> "Tels des programmeurs conscient de nos limites,
+> "Tels des programmeurs conscients de nos limites,
 > nous devrions faire tout notre possible pour […]
 > faire en sorte que la relation entre nos 
 > programmes (exprimés par du texte)
-> et leurs exécutions (exprimezs par rapport au temps)
+> et leurs exécutions (exprimées par rapport au temps)
 > soit aussi évidente que possible."
 
 > —[Edsger W. Dijkstra](https://en.wikipedia.org/wiki/Edsger_W._Dijkstra),
@@ -36,11 +36,11 @@ dans la mémoire des développeurs comme l'origine du populaire titre d'article 
 Car, comme souvent, Dijkstra faisait une remarque pertinente:
 **la structure d'un code devrait refléter son comportement**.
 
-Swift 2.0 a instauré deux nouvelles structures de contrôle
+Swift 2.0 a instauré deux nouvelles structures de contrôle,
 dont l'objectif est de simplifier et d'affiner les programmes
 que nous écrivons : `guard` et `defer`.
-Alors que le premier, par sa nature, rend notre code plus
-linéaire, le second permet l'inverse, en retardant
+Alors que la première, par sa nature, rend notre code plus
+linéaire, la seconde permet l'inverse, en retardant
 l'exécution de son contenu.
 
 Comment devons nous apprivoiser ces nouvelles structures
@@ -78,7 +78,7 @@ doit entraîner la sortie de la portée
 courante en utilisant soit `return` pour
 quitter une fonction, soit `continue` ou
 `break` pour sortir d'une boucle, ou bien
-une fonctionne qui retourne
+une fonctionne retournant
 [`Never`](https://nshipster.com/never)
 telle que `fatalError(_:file:line:)`.
 
@@ -110,7 +110,7 @@ guard let name = name else {
 Si la syntaxe permettant de multiples affections
 instaurée par [Swift 1.2](/swift-1.2/) annonçait
 une réfection de la [pyramide du malheur](http://www.scottlogic.com/blog/2014/12/08/swift-optional-pyramids-of-doom.html), `guard`
-permet de complètement la démolir.
+permet de la démolir complètement.
 
 ```swift
 for imageName in imageNamesList {
@@ -165,7 +165,7 @@ trop peur.
 
 Remarquons comme les instructions `throw` sont éloignées des
 conditions qui les déclenchent. Pour comprendre ce qu'il doit
-se passer lors que le livre `book.txt` n'a pas pu être trouvé,
+se passer lorsque le livre `book.txt` n'a pas pu être trouvé,
 il est nécessaire de descendre jusqu'à la fin de la fonction.
 
 Comme un bon livre, un code devrait raconter une histoire:
@@ -274,7 +274,7 @@ Source d'erreur ? _Complètement._
 Répétitif et frustrant ? _Absolument._
 
 En utilisant une instruction `defer`,
-nous pouvons supprimer l'erreur de programmation potentielle
+nous pouvons supprimer l'erreur de programmation potentielle,
 tout en simplifiant notre code :
 
 ```swift
@@ -305,8 +305,8 @@ _"Goed gedaan!" peut-il s'exclamer, dans son Danois natif_.
 
 ### Utiliser `defer` à répétition
 
-Si écrivez plusieurs instructions `defer` dans une même portée,
-ils seront exécutés dans l'ordre inverse de leur déclaration ---
+Si vous écrivez plusieurs instructions `defer` dans une même portée,
+elles seront exécutées dans l'ordre inverse de leur déclaration ---
 comme une pile.
 Cette inversion est un détail primordial,
 car il assure que toutes les ressources présentes lorsque
@@ -387,7 +387,7 @@ func burnAfterReading(file url: URL) throws {
 
 A la place, vous pouvez choisir d'ignorer l'erreur via
 `try?` ou bien, si cela n'est pas possible, ne pas effectuer
-cette appel via l'instruction `defer`
+cet appel via l'instruction `defer`
 
 ### (Any Other) Defer Considered Harmful
 
