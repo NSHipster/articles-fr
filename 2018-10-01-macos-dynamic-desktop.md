@@ -6,7 +6,7 @@ excerpt: >
   Le mode d'apparence sombre est un des ajouts à macOS le plus
   populaire --- tout particulièrement chez les développeurs.
   Suite logique de cette fonctionnalité et de Night Shift,
-  qui existe depuis déjà 2 ans, les fond d'écran dynamique
+  qui existe depuis déjà 2 ans, les fonds d'écran dynamiques
   font leur apparition sur macOS Mojave.
 status:
   swift: 4.2
@@ -25,7 +25,7 @@ d'une utilisation tard dans la nuit (ou plutôt, très tôt le matin).
 Suite logique de ces deux fonctionnalités de macOS, les fonds d'écran
 dynamiques débarquent sur macOS Mojave.
 Désormais, lorsque vous accédez à "Préférences Système > Bureau et économiseur d'écran",
-vous avez l'option de sélectionner un fond d'écran "dynamique" qui évolue
+vous avez l'option de sélectionner un fond d'écran "dynamique", qui évolue
 tout au long de la journée, en fonction de votre position géographique.
 
 {% asset desktop-and-screen-saver-preference-pane.png %}
@@ -70,7 +70,7 @@ nous obtenons quelques informations d'ordre général :
 {% asset mojave-heic-preview-info.png %}
 
 Malheureusement, c'est à peu près tout ce qu'Aperçu est capable de nous fournir
-(dû moins au moment où cet article est écrit).
+(du moins au moment où cet article est écrit).
 Si nous cliquons sur l'onglet "En savoir plus", nous n'en apprenons pas
 davantage :
 
@@ -214,7 +214,7 @@ _Les affaires reprennent !_
 
 Nous avons deux clés de premier niveau :
 
-La clé `ap` correspond à dictionnaire d'entiers associés aux
+La clé `ap` correspond à un dictionnaire d'entiers associés aux
 clés `d` et `l`.
 
 La clé `si` correspond à un tableau de dictionnaires, contenants
@@ -222,7 +222,7 @@ des nombres entiers et flottants.
 Dans ces dictionnaires, `i` est la valeur la plus simple à comprendre :
 allant de 0 à 15, il s'agit de l'index de l'image dans la séquence.
 Il serait difficile de deviner le sens de `a` et `z` sans information
-additionnelle, mais ils se trouvent qu'ils représentent l'altitude (`a`)
+additionnelle, mais il se trouve qu'ils représentent l'altitude (`a`)
 et l'azimuth (`z`) du soleil pour chacune des images.
 
 ### Calculer la Position du Soleil
@@ -238,7 +238,7 @@ d'une journée dépend de l'endroit de la planète où
 l'on se trouve, ainsi que de la position de la planète
 sur son orbite autour du soleil.
 
-La bonne nouvelle est que les astronome sont capable
+La bonne nouvelle est que les astronomes sont capables
 de prédire --- avec une précision parfaite --- la
 position du soleil dans le ciel à tout moment et en
 tout lieu.
@@ -319,7 +319,7 @@ print(xmp)
 
 _Ouch._
 
-Mais cela ne fait pas de mal d'être allé voir.
+Mais cela ne fait pas de mal d'être aller voir.
 Nous aurons besoin d'exploiter le namespace `apple_desktop`
 pour produire nos propres fonds d'écran dynamiques.
 
@@ -485,9 +485,9 @@ Bien joué !
 
 ---
 
-Nous adorons les fonds d'écrans dynamique de Mojave,
+Nous adorons les fonds d'écran dynamiques de Mojave,
 et nous some impatients de les voir rentrer dans les moeurs,
-de la même manière que les fond d'écran classique
+de la même manière que les fonds d'écran classiques
 à l'époque de Windows 95.
 
 Si cela vous intéresse,
@@ -557,4 +557,3 @@ toujours rémunérer quelqu'un pour le faire à votre place.
 
 Nous apprécions particulièrement l'app [24 Hour Wallpaper](https://www.jetsoncreative.com/24hourwallpaper/).
 Si vous avez d'autres recommandations, [faites nous le savoir sur Twitter !](https://twitter.com/NSHipster/).
-
