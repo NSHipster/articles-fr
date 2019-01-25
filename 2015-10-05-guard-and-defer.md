@@ -2,27 +2,27 @@
 title: guard & defer
 author: Mattt & Nate Cook
 authors:
-    - Nate Cook
-    - Mattt
+  - Nate Cook
+  - Mattt
 category: Swift
 excerpt: >
-	Swift 2.0 a instauré deux nouvelles structures de contrôle,
-	dont l'objectif est de simplifier et d'affiner les programmes
-	que nous écrivons.
-	Alors que la première, par sa nature, rend notre code plus
-	linéaire, la seconde permet l'inverse, en retardant
-	l'exécution de son contenu.
+  Swift 2.0 a instauré deux nouvelles structures de contrôle,
+  dont l'objectif est de simplifier et d'affiner les programmes
+  que nous écrivons.
+  Alors que la première, par sa nature, rend notre code plus
+  linéaire, la seconde permet l'inverse, en retardant
+  l'exécution de son contenu.
 revisions:
-    "2015-10-05": First Publication
-    "2018-08-01": Updated for Swift 4.2
+  "2015-10-05": First Publication
+  "2018-08-01": Updated for Swift 4.2
 status:
-    swift: 4.2
-    reviewed: August 1, 2018
+  swift: 4.2
+  reviewed: August 1, 2018
 ---
 
 > "Tels des programmeurs conscients de nos limites,
 > nous devrions faire tout notre possible pour […]
-> faire en sorte que la relation entre nos 
+> faire en sorte que la relation entre nos
 > programmes (exprimés par du texte)
 > et leurs exécutions (exprimées par rapport au temps)
 > soit aussi évidente que possible."
@@ -30,7 +30,7 @@ status:
 > —[Edsger W. Dijkstra](https://en.wikipedia.org/wiki/Edsger_W._Dijkstra),
 > ["Go To Considered Harmful"](https://homepages.cwi.nl/~storm/teaching/reader/Dijkstra68.pdf)
 
-Il est regrettable que l'article de Dijkstra soit principalement resté 
+Il est regrettable que l'article de Dijkstra soit principalement resté
 dans la mémoire des développeurs comme l'origine du populaire titre d'article "\_\_\_\_ Consider Harmful".
 
 Car, comme souvent, Dijkstra faisait une remarque pertinente:
@@ -332,8 +332,6 @@ clean the refrigerator<br/>
 take out the recycling<br/>
 wash the dishes<br/>
 </samp>
-
-
 
 > Que se passe-t-il si des instructions `defer` sont imbriquées, comme ici ?
 
