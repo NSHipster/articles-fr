@@ -4,6 +4,7 @@ author: Mattt & Nate Cook
 authors:
   - Nate Cook
   - Mattt
+translator: Vincent Pradeilles
 category: Swift
 excerpt: >
   Swift 2.0 a instauré deux nouvelles structures de contrôle,

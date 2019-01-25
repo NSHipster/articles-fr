@@ -1,6 +1,7 @@
 ---
 title: NSDataAsset
 author: Mattt
+translator: Vincent Pradeilles
 category: Cocoa
 excerpt: >
   Il existe de nombreuses techniques pour accélérer une
@@ -57,7 +58,7 @@ utilisateur au premier lancement de votre app.
 
 ---
 
-Les Asset Catalogs vous permettent de stocker et d'organiser des 
+Les Asset Catalogs vous permettent de stocker et d'organiser des
 ressources en fonction des caractéristiques de l'appareil courant.
 Pour une même image,
 vous pouvez fournir différents fichiers, en fonction de l'appareil
@@ -228,7 +229,7 @@ Ajoutez-le à votre `Makefile`, `Rakefile`, `Fastfile`,
 ou tout autre système de compilation de votre choix.
 Déléguez la tâche à Jenkins, Travis ou à un stagiaire.
 Déclenchez le depuis une intégration Slack ou créez un
-raccourci Siri pour étonner vos collègues avec un 
+raccourci Siri pour étonner vos collègues avec un
 _"Dis Siri, mets à jour ce jeu de donnée avant qu'il ne pourrisse"_.
 
 **Peu importe comment vous décidez de synchroniser vos données,
@@ -321,7 +322,7 @@ extension NSDataAsset {
 {% info do %}
 
 Vous pourriez aussi considérer gérer de grands jeux de données
-dans votre contrôle de version en utilisant 
+dans votre contrôle de version en utilisant
 [Git Large File Storage (LFS)](https://git-lfs.github.com).
 
 {% endinfo %}

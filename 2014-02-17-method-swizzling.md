@@ -1,11 +1,12 @@
 ---
 title: Method Swizzling
 author: Mattt
+translator: Vincent Pradeilles
 category: Objective-C
 excerpt: "Le swizzling de méthode est le processus consistant à changer l'implémentation associée à un sélecteur existant. Cette technique est rendue possible par le fait qu'en Objective-C, l'invocation de méthodes puisse être altérée à l'exécution, en modifiant la façon dont des sélecteurs sont associés à leurs fonctions sous-jacentes dans la table d'aiguillage d'une classe."
 status:
-    swift: n/a
-    reviewed: January 28, 2015
+  swift: n/a
+  reviewed: January 28, 2015
 ---
 
 > If you could blow up the world with the flick of a switch<br/>
@@ -17,14 +18,13 @@ status:
 > If you could take all the love without giving any back<br/>
 > Would you do it?<br/>
 > And so we cannot know ourselves or what we'd really do...<br/>
-> With all your power ... What would you do?<br/>
-> <cite><strong>The Flaming Lips</strong>, <em><a href="https://en.wikipedia.org/wiki/The_Yeah_Yeah_Yeah_Song_(With_All_Your_Power)">"The Yeah Yeah Yeah Song (With All Your Power)"</a></em></cite>
+> With all your power ... What would you do?<br/> > <cite><strong>The Flaming Lips</strong>, <em><a href="https://en.wikipedia.org/wiki/The_Yeah_Yeah_Yeah_Song_(With_All_Your_Power)">"The Yeah Yeah Yeah Song (With All Your Power)"</a></em></cite>
 
 Dans l'article de la semaine précédente sur les [associated objects](https://nshipster.com/associated-objects/), nous avons commencé à explorer les arcanes de l'environnement d'exécution de l'Objective-C. Cette semaine, nous nous aventurons plus avant, pour discuter de ce qui est peut-être la plus controversée des astuces qui tirent parti de cet environnement : le swizzling de méthode.
 
-* * *
+---
 
-Le swizzling de méthode est le processus consistant à changer l'implémentation associée à un sélecteur existant. Cette technique est rendue possible par le fait qu'en Objective-C, l'invocation de méthodes puisse être altérée à l'exécution, en modifiant la façon dont des sélecteurs sont associés à leurs fonctions sous-jacentes dans la table d'aiguillage d'une classe. 
+Le swizzling de méthode est le processus consistant à changer l'implémentation associée à un sélecteur existant. Cette technique est rendue possible par le fait qu'en Objective-C, l'invocation de méthodes puisse être altérée à l'exécution, en modifiant la façon dont des sélecteurs sont associés à leurs fonctions sous-jacentes dans la table d'aiguillage d'une classe.
 
 Par exemple, disons que nous souhaitons savoir combien de fois chaque view controller d'une app iOS est présenté à l'utilisateur.
 
@@ -110,13 +110,12 @@ En Objective-C, les _sélecteurs_, _méthodes_, et _implémentations_, bien que 
 Voici la façon dont la [documentation d'Apple](https://developer.apple.com/library/mac/documentation/Cocoa/Reference/ObjCRuntimeRef/Reference/reference.html#//apple_ref/c/func/method_getImplementation) les décrits :
 
 > - Sélecteur ((`typedef struct objc_selector *SEL`) : les sélecteurs sont utilisés pour représenter le nom d'une méthode lors de l'exécution. Un sélecteur de méthode est une chaîne de caractères C qui a été enregistrée (ou associée) à l'environnement d'exécution Objective-C. Les sélecteurs générés par le compilateur sont automatiquement associés à l'environnement d'exécution lorsque la classe est chargée.
-> - Méthode (`typedef struct objc_method *Method `) : un type opaque représentant une méthode dans la définition d'une classe.
+> - Méthode (`typedef struct objc_method *Method`) : un type opaque représentant une méthode dans la définition d'une classe.
 > - Implémentation (`typedef id (*IMP)(id, SEL, ...)`) : ce type de données est un pointeur vers le début d'une fonction qui implémente la méthode. Cette fonction utilise la convention d'appel C standard de l'architecture processeur courante. Le premier paramètre est un pointeur vers self (c'est à dire, l'emplacement en mémoire de l'instance de la classe, ou, pour une méthode de classe, un pointeur vers l'objet métaclasse). Le second paramètre est le sélecteur de la méthode. Suivent les arguments de la méthode.
 
 La meilleure façon de saisir le lien entre ces concepts est le suivant : une classe (`Class`) maintient une table d'aiguillage permettant de résoudre l'envoi de messages à l'exécution ; chaque entrée de cette table est une méthode (`Method`), avec pour valeur associée un sélecteur (`SEL`), vers une implémentation (`IMP`), qui est un pointeur vers la fonction C sous-jacente.
 
 Swizzler une méthode revient à modifier la table d'aiguillage d'une classe de façon à ce que les messages d'un sélecteur existant soient aiguillés vers une implémentation différente, tout en associant l'implémentation originale à un nouveau sélecteur.
-
 
 ## Appeler `_cmd`
 
@@ -144,6 +143,6 @@ Le swizzling est largement considéré comme une forme de magie noire, susceptib
 
 > Vous ne vous sentez pas capable d'interagir directement avec l'environnement d'exécution Objective-C ? [Jonathan ‘Wolf’ Rentzsch](https://twitter.com/rentzsch) propose une librairie testée et compatible avec CocoaPods appelée [JRSwizzle](https://github.com/rentzsch/jrswizzle), qui s'en chargera pour vous.
 
-* * *
+---
 
 Tout comme les [associated objects](https://nshipster.com/associated-objects/), le swizzling de méthode est une technique puissante, mais qui devrait être utilisée avec parcimonie.

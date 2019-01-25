@@ -1,6 +1,7 @@
 ---
 title: OptionSet
 author: Mattt
+translator: Vincent Pradeilles
 category: Swift
 excerpt: >-
   L'Objective-C utilise la macro `NS_OPTIONS`
@@ -25,7 +26,7 @@ des ensembles de valeurs qui peuvent être combinées en une
 seule.
 Par exemple, les valeurs du type `UIViewAutoresizing` de
 UIKit peuvent être combinées via l'opérateur OU binaire
-(`|`) et le résultat affecté à la propriété 
+(`|`) et le résultat affecté à la propriété
 `autoresizingMask` d'une `UIView`, pour spécifier quelles
 marges et dimensions doivent être automatiquement
 redimensionnées :
@@ -104,7 +105,7 @@ view.autoresizingMask = .flexibleHeight
 `OptionSet` implémente le protocole [`SetAlgebra`](https://developer.apple.com/documentation/swift/setalgebra),
 il est donc possible de spécifier de multiples options
 via un tableau littéral --- aucune manipulation sur les
-bits n'est requise : 
+bits n'est requise :
 
 ```swift
 view.autoresizingMask = [.flexibleHeight, .flexibleWidth]

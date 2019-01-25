@@ -1,6 +1,7 @@
 ---
 title: macOS Dynamic Desktop
 author: Mattt
+translator: Vincent Pradeilles
 category: ""
 excerpt: >
   Le mode d'apparence sombre est un des ajouts à macOS le plus
@@ -74,13 +75,13 @@ Malheureusement, c'est à peu près tout ce qu'Aperçu est capable de nous fourn
 Si nous cliquons sur l'onglet "En savoir plus", nous n'en apprenons pas
 davantage :
 
-|                    |             |
-| ------------------ | ----------- |
-| Mode de couleurs   | RGB         |
-| Profondeur:        | 8           |
-| Hauteur en pixels  | 2 880       |
-| Largeur en pixels  | 5 120       |
-| Nom du profil      | Afficher P3 |
+|                   |             |
+| ----------------- | ----------- |
+| Mode de couleurs  | RGB         |
+| Profondeur:       | 8           |
+| Hauteur en pixels | 2 880       |
+| Largeur en pixels | 5 120       |
+| Nom du profil     | Afficher P3 |
 
 {% info %}
 
@@ -512,7 +513,6 @@ En exploitant ces informations directement depuis les métadonnées des
 images, il est possible de déterminer la position du soleil et donc
 de simplifier le processus de création d'un fond d'écran dynamique à
 partir d'une série de photos.
-
 
 ### Réaliser un Time Lapse avec son iPhone
 
