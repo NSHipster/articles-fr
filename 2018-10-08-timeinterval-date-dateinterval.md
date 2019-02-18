@@ -46,31 +46,30 @@ It's about time we got them straight.
 
 ---
 
-Seconds are the fundamental unit of time.
-They're also the only unit that has a fixed duration.
+Les secondes sont une unité fondamentale de mesure du temps.
+C'est aussi la seule qui à une durée fixe.
 
-Months vary in length
-(_30 days hath September..._),
-as do years
-(_53 weeks hath 71 years every cycle of 400..._)
-certain years pick up an extra day
-(_leap years are misnamed if you think about it_),
-and days gain and lose an hour from daylight saving time
-(_thanks, Benjamin Franklin_).
-And that's to say nothing of leap seconds,
-which are responsible for such oddities as
-the 61 second minute,
-the 3601 second hour,
-and, of course, the 1209601 second fortnight.
+Le nombre de jours des mois varies
+(_30 jours en Septembre..._),
+tout comme les semaines dans une année
+(_53 semaines tout les 71 ans par cycle de 400..._),
+certaine année on un jour en trop
+(_les années bissextiles_),
+et days percent ou gagnent une heure à partir de l'heure d'été,
+(_merci Benjamin Franklin_).
+Et pour ne pas parler des secondes intercalaires,
+Qui sont responsable des bizarreries comme
+la minute à 61 secondes,
+L'heure à 3601 secondes,
+et surtout les deux semaines de 1209601 secondes.
 
-`TimeInterval` (née `NSTimeInterval`) is a typealias for `Double`
-that represents duration as a number of seconds.
-You'll see it as a parameter or return type
-for APIs that deal with a duration of time.
-Being a double-precision floating-point number,
-`TimeInterval` can represent submultiples in its fraction,
-(though for anything beyond millisecond precision,
-you'll want to use something else).
+`TimeInterval` (née `NSTimeInterval`) est un typealias pour `Double` qui représente une durée en secondes.
+Il est généralement utilisé en type de retour ou d'entré pour les APIs traitant de durée.
+Etant un nombre à virgule flottante à précision double,
+`TimeInterval` peut representer des sous-multiples de secondes.
+(Mais si vous souhaitez une précision plus fine que
+des millisecondes, vous allez devoir trouver autre chose)
+
 
 ## Date and Time
 
